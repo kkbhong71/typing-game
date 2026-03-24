@@ -7,364 +7,203 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Black+Han+Sans&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   :root {
-    --bg-deep: #0b0e17;
-    --bg-card: rgba(255,255,255,0.03);
-    --border: rgba(255,255,255,0.07);
-    --text: #e2e8f0;
-    --text-dim: #64748b;
-    --green: #22c55e;
-    --green-glow: rgba(34,197,94,0.25);
-    --blue: #38bdf8;
-    --blue-glow: rgba(56,189,248,0.25);
-    --red: #f87171;
-    --red-glow: rgba(248,113,113,0.25);
-    --gold: #fbbf24;
-    --gold-glow: rgba(251,191,36,0.25);
-    --orange: #fb923c;
-    --purple: #a78bfa;
+    --bg-deep: #0b0e17; --bg-card: rgba(255,255,255,0.03); --border: rgba(255,255,255,0.07);
+    --text: #e2e8f0; --text-dim: #64748b;
+    --green: #22c55e; --green-glow: rgba(34,197,94,0.25);
+    --blue: #38bdf8; --blue-glow: rgba(56,189,248,0.25);
+    --red: #f87171; --red-glow: rgba(248,113,113,0.25);
+    --gold: #fbbf24; --gold-glow: rgba(251,191,36,0.25);
+    --orange: #fb923c; --purple: #a78bfa;
   }
-
-  body {
-    background: var(--bg-deep);
-    color: var(--text);
-    font-family: 'Noto Sans KR', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Background grid */
-  body::before {
-    content: '';
-    position: fixed; inset: 0; z-index: 0;
-    background-image: 
-      radial-gradient(circle at 20% 30%, rgba(34,197,94,0.03) 0%, transparent 50%),
+  body { background:var(--bg-deep); color:var(--text); font-family:'Noto Sans KR',sans-serif; min-height:100vh; overflow-x:hidden; }
+  body::before { content:''; position:fixed; inset:0; z-index:0;
+    background-image: radial-gradient(circle at 20% 30%, rgba(34,197,94,0.03) 0%, transparent 50%),
       radial-gradient(circle at 80% 70%, rgba(56,189,248,0.03) 0%, transparent 50%);
-    pointer-events: none;
-  }
+    pointer-events:none; }
+  #root { position:relative; z-index:1; max-width:680px; margin:0 auto; padding:16px; min-height:100vh; }
 
-  #root {
-    position: relative; z-index: 1;
-    max-width: 680px;
-    margin: 0 auto;
-    padding: 16px;
-    min-height: 100vh;
-  }
+  .card { background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:20px; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:14px 28px; border-radius:14px; border:none;
+    font-family:'Noto Sans KR',sans-serif; font-size:16px; font-weight:700; cursor:pointer; transition:all 0.2s; -webkit-appearance:none; }
+  .btn:active { transform:scale(0.96); }
+  .btn-primary { background:linear-gradient(135deg,var(--green),#16a34a); color:#fff; box-shadow:0 4px 20px var(--green-glow); }
+  .btn-secondary { background:rgba(255,255,255,0.06); border:1px solid var(--border); color:var(--text); }
 
-  /* ── Shared ── */
-  .card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 20px;
-  }
+  .text-input { width:100%; padding:16px 20px; font-size:20px; font-family:'Noto Sans KR',sans-serif;
+    background:rgba(255,255,255,0.05); border:2px solid var(--border); border-radius:14px;
+    color:var(--text); outline:none; text-align:center; transition:border-color 0.2s,box-shadow 0.2s; -webkit-appearance:none; }
+  .text-input:focus { border-color:var(--green); box-shadow:0 0 0 3px var(--green-glow); }
+  .text-input::placeholder { color:var(--text-dim); }
 
-  .btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    padding: 14px 28px;
-    border-radius: 14px;
-    border: none;
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 16px; font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    -webkit-appearance: none;
-  }
-  .btn:active { transform: scale(0.96); }
+  .stat-row { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:16px; }
+  .stat-badge { padding:6px 14px; border-radius:10px; text-align:center; min-width:72px; }
+  .stat-badge .label { font-size:10px; color:var(--text-dim); margin-bottom:2px; }
+  .stat-badge .value { font-size:15px; font-weight:700; font-family:'JetBrains Mono',monospace; }
 
-  .btn-primary {
-    background: linear-gradient(135deg, var(--green), #16a34a);
-    color: #fff;
-    box-shadow: 0 4px 20px var(--green-glow);
-  }
-  .btn-secondary {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid var(--border);
-    color: var(--text);
-  }
-  .btn-danger {
-    background: linear-gradient(135deg, var(--red), #dc2626);
-    color: #fff;
-    box-shadow: 0 4px 20px var(--red-glow);
-  }
+  .progress-bar { height:5px; border-radius:3px; background:rgba(255,255,255,0.06); overflow:hidden; margin-bottom:20px; }
+  .progress-bar .fill { height:100%; border-radius:3px; transition:width 0.3s; }
 
-  .text-input {
-    width: 100%;
-    padding: 16px 20px;
-    font-size: 20px;
-    font-family: 'Noto Sans KR', sans-serif;
-    background: rgba(255,255,255,0.05);
-    border: 2px solid var(--border);
-    border-radius: 14px;
-    color: var(--text);
-    outline: none;
-    text-align: center;
-    transition: border-color 0.2s;
-    -webkit-appearance: none;
-  }
-  .text-input:focus {
-    border-color: var(--green);
-    box-shadow: 0 0 0 3px var(--green-glow);
-  }
-  .text-input::placeholder { color: var(--text-dim); }
+  @keyframes fadeInUp { from{opacity:0;transform:translateY(24px);} to{opacity:1;transform:translateY(0);} }
+  @keyframes pop { 0%{transform:scale(0.7);opacity:0;} 60%{transform:scale(1.05);} 100%{transform:scale(1);opacity:1;} }
+  @keyframes floatUp { from{transform:translateY(0);opacity:1;} to{transform:translateY(-50px);opacity:0;} }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+  @keyframes glow { 0%,100%{box-shadow:0 0 8px var(--gold-glow);} 50%{box-shadow:0 0 24px var(--gold-glow);} }
 
-  .stat-row {
-    display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
-    margin-bottom: 16px;
-  }
-  .stat-badge {
-    padding: 6px 14px; border-radius: 10px;
-    text-align: center; min-width: 72px;
-  }
-  .stat-badge .label { font-size: 10px; color: var(--text-dim); margin-bottom: 2px; }
-  .stat-badge .value { font-size: 15px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .anim-up { animation:fadeInUp 0.4s ease both; }
+  .anim-pop { animation:pop 0.35s ease both; }
 
-  .progress-bar {
-    height: 5px; border-radius: 3px;
-    background: rgba(255,255,255,0.06);
-    overflow: hidden; margin-bottom: 20px;
-  }
-  .progress-bar .fill {
-    height: 100%; border-radius: 3px;
-    transition: width 0.3s;
-  }
+  .sound-toggle { position:fixed; top:12px; right:12px; z-index:100; width:40px; height:40px; border-radius:50%;
+    background:rgba(255,255,255,0.06); border:1px solid var(--border); cursor:pointer;
+    display:flex; align-items:center; justify-content:center; font-size:18px; transition:all 0.2s; }
+  .sound-toggle:hover { background:rgba(255,255,255,0.1); }
 
-  /* Animations */
-  @keyframes fadeInUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
-  @keyframes pop { 0% { transform:scale(0.7); opacity:0; } 60% { transform:scale(1.05); } 100% { transform:scale(1); opacity:1; } }
-  @keyframes floatUp { from { transform:translateY(0); opacity:1; } to { transform:translateY(-50px); opacity:0; } }
-  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
-  @keyframes shake { 0%,100% { transform:translateX(0); } 25% { transform:translateX(-4px); } 75% { transform:translateX(4px); } }
-
-  .anim-up { animation: fadeInUp 0.4s ease both; }
-  .anim-pop { animation: pop 0.35s ease both; }
-  .anim-shake { animation: shake 0.3s ease; }
-
-  /* Mobile adjustments */
-  @media (max-width: 480px) {
-    #root { padding: 10px; }
-    .card { padding: 14px; border-radius: 12px; }
-    .btn { padding: 12px 20px; font-size: 15px; }
-    .text-input { font-size: 18px; padding: 14px 16px; }
-    .stat-badge { min-width: 60px; padding: 5px 10px; }
-    .stat-badge .value { font-size: 13px; }
+  @media (max-width:480px) {
+    #root { padding:10px; } .card { padding:14px; border-radius:12px; }
+    .btn { padding:12px 20px; font-size:15px; }
+    .text-input { font-size:18px; padding:14px 16px; }
+    .stat-badge { min-width:60px; padding:5px 10px; } .stat-badge .value { font-size:13px; }
   }
 </style>
 </head>
 <body>
 <div id="root"></div>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
-
 <script type="text/babel">
-const { useState, useEffect, useRef, useCallback } = React;
+const { useState, useEffect, useRef, useCallback, createContext, useContext } = React;
+
+// ═══════════════════════════════════════
+//  SOUND ENGINE (Web Audio API)
+// ═══════════════════════════════════════
+class SoundEngine {
+  constructor() { this.ctx = null; this.enabled = true; this.volume = 0.35; }
+  init() { if(this.ctx) return; try { this.ctx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){} }
+  _osc(freq, dur, type="sine", vol=this.volume) {
+    if(!this.ctx||!this.enabled) return;
+    if(this.ctx.state==="suspended") this.ctx.resume();
+    const o=this.ctx.createOscillator(), g=this.ctx.createGain();
+    o.type=type; o.frequency.setValueAtTime(freq,this.ctx.currentTime);
+    g.gain.setValueAtTime(vol,this.ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,this.ctx.currentTime+dur);
+    o.connect(g); g.connect(this.ctx.destination);
+    o.start(this.ctx.currentTime); o.stop(this.ctx.currentTime+dur);
+  }
+  _noise(dur, vol=0.08) {
+    if(!this.ctx||!this.enabled) return;
+    if(this.ctx.state==="suspended") this.ctx.resume();
+    const sz=this.ctx.sampleRate*dur, buf=this.ctx.createBuffer(1,sz,this.ctx.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<sz;i++) d[i]=(Math.random()*2-1)*0.5;
+    const s=this.ctx.createBufferSource(), g=this.ctx.createGain(); s.buffer=buf;
+    g.gain.setValueAtTime(vol,this.ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001,this.ctx.currentTime+dur);
+    s.connect(g); g.connect(this.ctx.destination); s.start(); s.stop(this.ctx.currentTime+dur);
+  }
+  type() { this._osc(800+Math.random()*200, 0.04, "square", 0.06); }
+  correct() { this._osc(523,0.1,"sine",0.25); setTimeout(()=>this._osc(659,0.1,"sine",0.2),60); setTimeout(()=>this._osc(784,0.15,"sine",0.25),120); }
+  wrong() { this._osc(180,0.15,"sawtooth",0.12); setTimeout(()=>this._osc(150,0.2,"sawtooth",0.1),80); }
+  combo(count) {
+    const b=440+Math.min(count*30,400);
+    this._osc(b,0.08,"sine",0.2); setTimeout(()=>this._osc(b*1.25,0.08,"sine",0.18),50); setTimeout(()=>this._osc(b*1.5,0.12,"sine",0.22),100);
+    if(count%5===0&&count>0) setTimeout(()=>{
+      this._osc(523,0.08,"sine",0.3); setTimeout(()=>this._osc(659,0.08,"sine",0.28),70);
+      setTimeout(()=>this._osc(784,0.08,"sine",0.26),140); setTimeout(()=>this._osc(1047,0.2,"sine",0.3),210);
+    },150);
+  }
+  miss() { this._noise(0.12,0.15); this._osc(120,0.25,"sine",0.2); }
+  levelUp() { [523,659,784,1047].forEach((n,i)=>setTimeout(()=>this._osc(n,0.12,"triangle",0.2),i*80)); }
+  countdown(sec) { this._osc(sec<=1?880:660, 0.15, "sine", 0.25); }
+  gameOver() { [784,659,523,392,330].forEach((n,i)=>setTimeout(()=>this._osc(n,0.2,"triangle",0.2),i*120)); }
+  newRecord() { [523,659,784,1047,784,1047].forEach((n,i)=>setTimeout(()=>this._osc(n,0.15,"sine",0.25),i*100)); setTimeout(()=>this._osc(1319,0.4,"sine",0.3),600); }
+  click() { this._osc(600,0.05,"sine",0.12); }
+  toggle() { this.enabled=!this.enabled; return this.enabled; }
+}
+const soundEngine = new SoundEngine();
+const SoundContext = createContext(soundEngine);
 
 // ═══════════════════════════════════════
 //  DATA
 // ═══════════════════════════════════════
 const WORDS = {
-  easy: {
-    label: "초급", emoji: "🌱",
-    words: [
-      "사과","바나나","포도","딸기","수박","참외","감","배","키위","오렌지",
-      "학교","선생님","학생","교실","운동장","도서관","급식","공부","숙제","시험",
-      "하늘","바다","산","강","꽃","나무","바람","비","눈","구름",
-      "엄마","아빠","동생","친구","가족","이웃","할머니","언니","오빠","형",
-      "사랑","행복","웃음","꿈","희망","용기","노력","감사","평화","기쁨"
-    ]
+  easy: { label:"초급", emoji:"🌱",
+    words:["사과","바나나","포도","딸기","수박","참외","감","배","키위","오렌지","학교","선생님","학생","교실","운동장","도서관","급식","공부","숙제","시험","하늘","바다","산","강","꽃","나무","바람","비","눈","구름","엄마","아빠","동생","친구","가족","이웃","할머니","언니","오빠","형","사랑","행복","웃음","꿈","희망","용기","노력","감사","평화","기쁨"],
+    falling:{ baseSpeed:0.025, speedVar:0.012, spawnMs:2600, accel:0.00008, maxSpeed:0.06, label:"느림" }
   },
-  medium: {
-    label: "중급", emoji: "🌿",
-    words: [
-      "컴퓨터","스마트폰","인터넷","프로그램","알고리즘","소프트웨어","네트워크","데이터","보안","서버",
-      "대한민국","무궁화","태극기","경복궁","한라산","백두산","독도","제주도","석굴암","남산타워",
-      "인공지능","빅데이터","사물인터넷","클라우드","블록체인","가상현실","드론","로봇","코딩","자율주행",
-      "올림픽","월드컵","야구장","축구공","농구코트","배드민턴","탁구채","수영장","마라톤","태권도",
-      "도서관에서","운동장에서","교실에서","체육관에서","과학실에서","음악실에서","미술실에서","급식실에서","강당에서","복도에서"
-    ]
+  medium: { label:"중급", emoji:"🌿",
+    words:["컴퓨터","스마트폰","인터넷","프로그램","알고리즘","소프트웨어","네트워크","데이터","보안","서버","대한민국","무궁화","태극기","경복궁","한라산","백두산","독도","제주도","석굴암","남산타워","인공지능","빅데이터","사물인터넷","클라우드","블록체인","가상현실","드론","로봇","코딩","자율주행","올림픽","월드컵","야구장","축구공","농구코트","배드민턴","탁구채","수영장","마라톤","태권도","도서관에서","운동장에서","교실에서","체육관에서","과학실에서","음악실에서","미술실에서","급식실에서","강당에서","복도에서"],
+    falling:{ baseSpeed:0.042, speedVar:0.018, spawnMs:2000, accel:0.00013, maxSpeed:0.095, label:"보통" }
   },
-  hard: {
-    label: "고급", emoji: "🌳",
-    words: [
-      "정보통신기술","인공지능윤리","지속가능발전","민주주의사회","과학기술혁신",
-      "프로그래밍언어","객체지향설계","데이터베이스","웹애플리케이션","소프트웨어공학",
-      "환경오염방지","지구온난화대책","재생에너지활용","생태계보전활동","탄소중립실현",
-      "교육과정개정","학생중심수업","과정중심평가","자기주도학습","창의융합교육",
-      "문화다양성존중","세계시민교육","디지털리터러시","미디어리터러시","비판적사고력"
-    ]
+  hard: { label:"고급", emoji:"🌳",
+    words:["정보통신기술","인공지능윤리","지속가능발전","민주주의사회","과학기술혁신","프로그래밍언어","객체지향설계","데이터베이스","웹애플리케이션","소프트웨어공학","환경오염방지","지구온난화대책","재생에너지활용","생태계보전활동","탄소중립실현","교육과정개정","학생중심수업","과정중심평가","자기주도학습","창의융합교육","문화다양성존중","세계시민교육","디지털리터러시","미디어리터러시","비판적사고력"],
+    falling:{ baseSpeed:0.058, speedVar:0.025, spawnMs:1500, accel:0.00018, maxSpeed:0.13, label:"빠름" }
   }
 };
+const SENTENCES=["오늘 하늘이 맑고 바람이 시원하게 불어옵니다.","학교에서 친구들과 함께 공부하는 것은 즐거운 일입니다.","대한민국은 사계절이 뚜렷한 아름다운 나라입니다.","컴퓨터 프로그래밍은 논리적 사고력을 키워줍니다.","독서는 마음의 양식이며 지혜의 원천입니다.","건강한 몸에 건강한 정신이 깃든다고 합니다.","서로 돕고 배려하는 마음이 세상을 만듭니다.","과학 기술의 발전이 우리 생활을 편리하게 해줍니다.","꿈을 가지고 노력하면 반드시 이룰 수 있습니다.","자연을 사랑하고 보호하는 것은 우리의 책임입니다.","인공지능 기술이 교육에 새로운 변화를 가져옵니다.","매일 조금씩 연습하면 타자 실력이 크게 향상됩니다.","우리 학교 도서관에는 다양한 종류의 책이 있습니다.","음악을 들으면 마음이 편안해지고 기분이 좋아집니다.","봄에는 벚꽃이 피고 가을에는 단풍이 아름답습니다.","규칙적인 운동은 건강을 유지하는 좋은 방법입니다.","좋은 친구는 인생에서 가장 소중한 보물입니다.","실패를 두려워하지 말고 도전하는 자세가 중요합니다.","한글은 세계에서 가장 과학적인 문자입니다.","미래 사회는 창의력과 협동심을 갖춘 인재가 필요합니다."];
+const ENCOURAGE={great:["대단해요! 🔥","최고예요! 🎉","완벽해요! ⭐","멋져요! 💪","천재인가요?! 🧠"],miss:["앗! 다음엔 맞춰봐요 😅","괜찮아요~ 다시! 💫","실수는 성장의 씨앗! 🌱"]};
 
-const SENTENCES = [
-  "오늘 하늘이 맑고 바람이 시원하게 불어옵니다.",
-  "학교에서 친구들과 함께 공부하는 것은 즐거운 일입니다.",
-  "대한민국은 사계절이 뚜렷한 아름다운 나라입니다.",
-  "컴퓨터 프로그래밍은 논리적 사고력을 키워줍니다.",
-  "독서는 마음의 양식이며 지혜의 원천입니다.",
-  "건강한 몸에 건강한 정신이 깃든다고 합니다.",
-  "서로 돕고 배려하는 마음이 세상을 만듭니다.",
-  "과학 기술의 발전이 우리 생활을 편리하게 해줍니다.",
-  "꿈을 가지고 노력하면 반드시 이룰 수 있습니다.",
-  "자연을 사랑하고 보호하는 것은 우리의 책임입니다.",
-  "인공지능 기술이 교육에 새로운 변화를 가져옵니다.",
-  "매일 조금씩 연습하면 타자 실력이 크게 향상됩니다.",
-  "우리 학교 도서관에는 다양한 종류의 책이 있습니다.",
-  "음악을 들으면 마음이 편안해지고 기분이 좋아집니다.",
-  "봄에는 벚꽃이 피고 가을에는 단풍이 아름답습니다.",
-  "규칙적인 운동은 건강을 유지하는 좋은 방법입니다.",
-  "좋은 친구는 인생에서 가장 소중한 보물입니다.",
-  "실패를 두려워하지 말고 도전하는 자세가 중요합니다.",
-  "한글은 세계에서 가장 과학적인 문자입니다.",
-  "미래 사회는 창의력과 협동심을 갖춘 인재가 필요합니다."
-];
-
-const ENCOURAGE = {
-  great: ["대단해요! 🔥","최고예요! 🎉","완벽해요! ⭐","멋져요! 💪","천재인가요?! 🧠"],
-  good:  ["잘하고 있어요! 👍","좋아요! 😊","계속 이 조자! 🚀","실력이 느는 중! 📈"],
-  ok:    ["괜찮아요! 힘내세요 💪","조금만 더! 🌟","연습이 실력이에요 📝","포기하지 마세요! 🙌"],
-  miss:  ["앗! 다음엔 맞춰봐요 😅","괜찮아요~ 다시! 💫","실수는 성장의 씨앗! 🌱"]
-};
-
-const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
-const shuffle = (arr) => { const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
-
-const getKoreanStrokes = (str) => {
-  let c = 0;
-  for (const ch of str) {
-    const code = ch.charCodeAt(0);
-    if (code >= 0xAC00 && code <= 0xD7A3) {
-      c += ((code - 0xAC00) % 28 === 0) ? 2 : 3;
-    } else if ((code>=0x3131&&code<=0x314E)||(code>=0x314F&&code<=0x3163)) {
-      c += 1;
-    } else { c += 1; }
-  }
-  return c;
-};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;};
+const getKS=s=>{let c=0;for(const ch of s){const k=ch.charCodeAt(0);if(k>=0xAC00&&k<=0xD7A3)c+=((k-0xAC00)%28===0)?2:3;else if((k>=0x3131&&k<=0x314E)||(k>=0x314F&&k<=0x3163))c+=1;else c+=1;}return c;};
 
 // ═══════════════════════════════════════
 //  APP
 // ═══════════════════════════════════════
 function App() {
-  const [screen, setScreen] = useState("welcome"); // welcome, menu, word, sentence, falling, result
-  const [difficulty, setDifficulty] = useState("easy");
-  const [stats, setStats] = useState({});
-  const [studentName, setStudentName] = useState(() => localStorage.getItem("typing_name") || "");
-  const [bestScores, setBestScores] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("typing_best") || "{}"); } catch { return {}; }
-  });
+  const [screen,setScreen]=useState("welcome");
+  const [diff,setDiff]=useState("easy");
+  const [stats,setStats]=useState({});
+  const [name,setName]=useState(()=>localStorage.getItem("typing_name")||"");
+  const [best,setBest]=useState(()=>{try{return JSON.parse(localStorage.getItem("typing_best")||"{}");}catch{return{};}});
+  const [soundOn,setSoundOn]=useState(true);
 
-  const saveName = (name) => {
-    setStudentName(name);
-    localStorage.setItem("typing_name", name);
-  };
-
-  const saveBest = (mode, score) => {
-    const key = mode + "_" + difficulty;
-    const prev = bestScores[key] || 0;
-    if (score > prev) {
-      const next = { ...bestScores, [key]: score };
-      setBestScores(next);
-      localStorage.setItem("typing_best", JSON.stringify(next));
-      return true;
-    }
-    return false;
-  };
-
-  const startGame = (mode) => {
-    setStats({ score:0, correct:0, wrong:0, totalChars:0, startTime:Date.now(), lastMode:mode });
-    setScreen(mode);
-  };
-
-  const endGame = (finalStats) => {
-    const newRecord = saveBest(finalStats.lastMode, finalStats.score);
-    setStats({ ...finalStats, newRecord });
-    setScreen("result");
-  };
+  const saveName=n=>{setName(n);localStorage.setItem("typing_name",n);};
+  const saveBest=(mode,score)=>{const k=mode+"_"+diff;const p=best[k]||0;if(score>p){const nx={...best,[k]:score};setBest(nx);localStorage.setItem("typing_best",JSON.stringify(nx));return true;}return false;};
+  const startGame=m=>{soundEngine.init();soundEngine.click();setStats({score:0,correct:0,wrong:0,totalChars:0,startTime:Date.now(),lastMode:m});setScreen(m);};
+  const endGame=f=>{const nr=saveBest(f.lastMode,f.score);if(nr)soundEngine.newRecord();else soundEngine.gameOver();setStats({...f,newRecord:nr});setScreen("result");};
+  const toggleSound=()=>{soundEngine.init();const on=soundEngine.toggle();setSoundOn(on);if(on)soundEngine.click();};
 
   return (
-    <div>
-      {screen === "welcome" && <WelcomeScreen name={studentName} onSaveName={saveName} onStart={() => setScreen("menu")} />}
-      {screen === "menu" && <MenuScreen onStart={startGame} difficulty={difficulty} setDifficulty={setDifficulty} name={studentName} bestScores={bestScores} currentDiff={difficulty} />}
-      {screen === "word" && <WordMode difficulty={difficulty} onEnd={endGame} stats={stats} setStats={setStats} />}
-      {screen === "sentence" && <SentenceMode onEnd={endGame} stats={stats} setStats={setStats} />}
-      {screen === "falling" && <FallingMode difficulty={difficulty} onEnd={endGame} stats={stats} setStats={setStats} />}
-      {screen === "result" && <ResultScreen stats={stats} name={studentName} onBack={() => setScreen("menu")} onRetry={() => startGame(stats.lastMode)} />}
-    </div>
+    <SoundContext.Provider value={soundEngine}>
+      <button className="sound-toggle" onClick={toggleSound} title={soundOn?"소리 끄기":"소리 켜기"}>{soundOn?"🔊":"🔇"}</button>
+      <div>
+        {screen==="welcome"&&<WelcomeScreen name={name} onSaveName={saveName} onStart={()=>{soundEngine.init();setScreen("menu");}} />}
+        {screen==="menu"&&<MenuScreen onStart={startGame} diff={diff} setDiff={setDiff} name={name} best={best} />}
+        {screen==="word"&&<WordMode diff={diff} onEnd={endGame} stats={stats} setStats={setStats} />}
+        {screen==="sentence"&&<SentenceMode onEnd={endGame} stats={stats} setStats={setStats} />}
+        {screen==="falling"&&<FallingMode diff={diff} onEnd={endGame} stats={stats} setStats={setStats} />}
+        {screen==="result"&&<ResultScreen stats={stats} name={name} onBack={()=>{soundEngine.click();setScreen("menu");}} onRetry={()=>startGame(stats.lastMode)} />}
+      </div>
+    </SoundContext.Provider>
   );
 }
 
 // ═══════════════════════════════════════
-//  WELCOME SCREEN
+//  WELCOME
 // ═══════════════════════════════════════
-function WelcomeScreen({ name, onSaveName, onStart }) {
-  const [inputName, setInputName] = useState(name);
-  const [step, setStep] = useState(0);
-
-  useEffect(() => {
-    const t = setTimeout(() => setStep(1), 300);
-    return () => clearTimeout(t);
-  }, []);
-
-  const handleGo = () => {
-    if (inputName.trim()) onSaveName(inputName.trim());
-    onStart();
-  };
-
+function WelcomeScreen({name,onSaveName,onStart}) {
+  const [inp,setInp]=useState(name);
+  const [step,setStep]=useState(0);
+  useEffect(()=>{setTimeout(()=>setStep(1),300);},[]);
+  const go=()=>{if(inp.trim())onSaveName(inp.trim());onStart();};
   return (
-    <div style={{ minHeight: "100vh", display:"flex", flexDirection:"column", justifyContent:"center", alignItems:"center", textAlign:"center", padding:"20px" }}>
-      {step >= 1 && (
+    <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",textAlign:"center",padding:20}}>
+      {step>=1&&(
         <div className="anim-up">
-          {/* School badge */}
-          <div style={{
-            width:80, height:80, borderRadius:"50%", margin:"0 auto 16px",
-            background:"linear-gradient(135deg, var(--green), var(--blue))",
-            display:"flex", alignItems:"center", justifyContent:"center",
-            fontSize:40, boxShadow:"0 8px 32px var(--green-glow)"
-          }}>⌨️</div>
-
-          <h1 style={{
-            fontFamily:"'Black Han Sans', sans-serif",
-            fontSize:"clamp(28px, 7vw, 44px)",
-            background:"linear-gradient(135deg, var(--green), var(--blue))",
-            WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent",
-            lineHeight:1.3, marginBottom:8
-          }}>한글 타자 연습</h1>
-
-          <p style={{ color:"var(--text-dim)", fontSize:14, marginBottom:40 }}>
-            오성중학교 타자 마스터에 오신 것을 환영합니다!
-          </p>
-
-          {/* Name Input */}
-          <div style={{ maxWidth:320, margin:"0 auto 24px" }}>
-            <label style={{ display:"block", fontSize:13, color:"var(--text-dim)", marginBottom:8, textAlign:"left" }}>
-              이름 또는 별명을 입력하세요 (선택)
-            </label>
-            <input
-              className="text-input"
-              value={inputName}
-              onChange={e => setInputName(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleGo()}
-              placeholder="예: 홍길동"
-              style={{ fontSize:18 }}
-              autoFocus
-            />
+          <div style={{width:80,height:80,borderRadius:"50%",margin:"0 auto 16px",background:"linear-gradient(135deg,var(--green),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:40,boxShadow:"0 8px 32px var(--green-glow)"}}>⌨️</div>
+          <h1 style={{fontFamily:"'Black Han Sans',sans-serif",fontSize:"clamp(28px,7vw,44px)",background:"linear-gradient(135deg,var(--green),var(--blue))",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",lineHeight:1.3,marginBottom:8}}>한글 타자 연습</h1>
+          <p style={{color:"var(--text-dim)",fontSize:14,marginBottom:40}}>오성중학교 타자 마스터에 오신 것을 환영합니다!</p>
+          <div style={{maxWidth:320,margin:"0 auto 24px"}}>
+            <label style={{display:"block",fontSize:13,color:"var(--text-dim)",marginBottom:8,textAlign:"left"}}>이름 또는 별명 (선택)</label>
+            <input className="text-input" value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()} placeholder="예: 홍길동" style={{fontSize:18}} autoFocus />
           </div>
-
-          <button className="btn btn-primary" onClick={handleGo}
-            style={{ fontSize:18, padding:"16px 48px", borderRadius:16 }}>
-            🚀 시작하기
-          </button>
-
-          {/* How to play */}
-          <div className="card" style={{ maxWidth:400, margin:"40px auto 0", textAlign:"left", fontSize:13, color:"var(--text-dim)", lineHeight:2 }}>
-            <div style={{ fontWeight:700, color:"var(--text)", marginBottom:8, fontSize:14 }}>🎮 이용 방법</div>
+          <button className="btn btn-primary" onClick={go} style={{fontSize:18,padding:"16px 48px",borderRadius:16}}>🚀 시작하기</button>
+          <div className="card" style={{maxWidth:420,margin:"40px auto 0",textAlign:"left",fontSize:13,color:"var(--text-dim)",lineHeight:2}}>
+            <div style={{fontWeight:700,color:"var(--text)",marginBottom:8,fontSize:14}}>🎮 이용 방법</div>
             <div><strong style={{color:"var(--green)"}}>단어 연습</strong> — 화면에 나오는 단어를 빠르게 입력</div>
             <div><strong style={{color:"var(--blue)"}}>문장 연습</strong> — 문장을 보고 정확하게 따라 입력</div>
             <div><strong style={{color:"var(--red)"}}>낙하 게임</strong> — 떨어지는 단어를 입력해서 없애기!</div>
+            <div style={{marginTop:8}}>🔊 오른쪽 위 버튼으로 소리를 켜고 끌 수 있어요</div>
           </div>
         </div>
       )}
@@ -373,86 +212,72 @@ function WelcomeScreen({ name, onSaveName, onStart }) {
 }
 
 // ═══════════════════════════════════════
-//  MENU SCREEN
+//  MENU
 // ═══════════════════════════════════════
-function MenuScreen({ onStart, difficulty, setDifficulty, name, bestScores, currentDiff }) {
-  const modes = [
-    { id:"word", icon:"✏️", title:"단어 연습", desc:"60초 안에 단어를 빠르게!", color:"var(--green)", bg:"var(--green-glow)" },
-    { id:"sentence", icon:"📝", title:"문장 연습", desc:"문장을 정확하게 따라 치기", color:"var(--blue)", bg:"var(--blue-glow)" },
-    { id:"falling", icon:"🎮", title:"낙하 게임", desc:"떨어지는 단어를 잡아라!", color:"var(--red)", bg:"var(--red-glow)" },
+function MenuScreen({onStart,diff,setDiff,name,best}) {
+  const sound=useContext(SoundContext);
+  const modes=[
+    {id:"word",icon:"✏️",title:"단어 연습",desc:"60초 안에 단어를 빠르게!",color:"var(--green)",bg:"var(--green-glow)"},
+    {id:"sentence",icon:"📝",title:"문장 연습",desc:"문장을 정확하게 따라 치기",color:"var(--blue)",bg:"var(--blue-glow)"},
+    {id:"falling",icon:"🎮",title:"낙하 게임",desc:"떨어지는 단어를 잡아라!",color:"var(--red)",bg:"var(--red-glow)"},
   ];
-
+  const fc = WORDS[diff].falling;
   return (
-    <div style={{ paddingTop:20 }}>
-      {/* Header */}
-      <div style={{ textAlign:"center", marginBottom:32 }} className="anim-up">
-        <div style={{ fontSize:13, color:"var(--text-dim)", marginBottom:4 }}>
-          {name ? `${name}님, 환영합니다! 👋` : "환영합니다! 👋"}
-        </div>
-        <h1 style={{
-          fontFamily:"'Black Han Sans', sans-serif", fontSize:"clamp(24px,6vw,36px)",
-          color:"var(--text)", margin:"4px 0 0"
-        }}>모드를 선택하세요</h1>
+    <div style={{paddingTop:20}}>
+      <div style={{textAlign:"center",marginBottom:32}} className="anim-up">
+        <div style={{fontSize:13,color:"var(--text-dim)",marginBottom:4}}>{name?`${name}님, 환영합니다! 👋`:"환영합니다! 👋"}</div>
+        <h1 style={{fontFamily:"'Black Han Sans',sans-serif",fontSize:"clamp(24px,6vw,36px)",color:"var(--text)",margin:"4px 0 0"}}>모드를 선택하세요</h1>
       </div>
-
       {/* Difficulty */}
-      <div style={{ display:"flex", justifyContent:"center", gap:8, marginBottom:28 }}>
-        {Object.entries(WORDS).map(([key, val]) => (
-          <button key={key} onClick={() => setDifficulty(key)} style={{
-            padding:"8px 20px", borderRadius:20,
-            background: difficulty===key ? `${key==='easy'?'var(--green)':key==='medium'?'var(--blue)':'var(--red)'}15` : "rgba(255,255,255,0.03)",
-            border:`1.5px solid ${difficulty===key ? (key==='easy'?'var(--green)':key==='medium'?'var(--blue)':'var(--red)') : 'var(--border)'}`,
-            color: difficulty===key ? (key==='easy'?'var(--green)':key==='medium'?'var(--blue)':'var(--red)') : "var(--text-dim)",
-            cursor:"pointer", fontFamily:"'Noto Sans KR'", fontWeight:600, fontSize:14,
-            transition:"all 0.2s"
-          }}>
-            {val.emoji} {val.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Mode Cards */}
-      <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
-        {modes.map((mode, i) => {
-          const bestKey = mode.id + "_" + currentDiff;
-          const best = bestScores[bestKey];
-          return (
-            <button key={mode.id} onClick={() => onStart(mode.id)}
-              className="anim-up"
-              style={{
-                display:"flex", alignItems:"center", gap:16,
-                padding:"20px", borderRadius:16,
-                background:"var(--bg-card)", border:"1px solid var(--border)",
-                cursor:"pointer", textAlign:"left", width:"100%",
-                transition:"all 0.25s", animationDelay:`${i*0.08}s`,
-                position:"relative", overflow:"hidden"
-              }}
-              onMouseOver={e => { e.currentTarget.style.borderColor = mode.color; e.currentTarget.style.transform = "translateY(-2px)"; }}
-              onMouseOut={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.transform = "translateY(0)"; }}
-              onTouchStart={e => { e.currentTarget.style.borderColor = mode.color; }}
-              onTouchEnd={e => { setTimeout(() => { e.currentTarget.style.borderColor = "var(--border)"; }, 200); }}
-            >
-              <div style={{
-                fontSize:32, width:56, height:56, borderRadius:14,
-                background:mode.bg, display:"flex", alignItems:"center", justifyContent:"center",
-                flexShrink:0
-              }}>{mode.icon}</div>
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:18, fontWeight:700, color:"var(--text)" }}>{mode.title}</div>
-                <div style={{ fontSize:13, color:"var(--text-dim)", marginTop:2 }}>{mode.desc}</div>
-                {best > 0 && (
-                  <div style={{ fontSize:11, color:"var(--gold)", marginTop:4 }}>🏆 최고 기록: {best.toLocaleString()}점</div>
-                )}
-              </div>
-              <div style={{ color:mode.color, fontSize:22, fontWeight:300, flexShrink:0 }}>›</div>
-            </button>
-          );
+      <div style={{display:"flex",justifyContent:"center",gap:8,marginBottom:20}}>
+        {Object.entries(WORDS).map(([k,v])=>{
+          const c=k==='easy'?'var(--green)':k==='medium'?'var(--blue)':'var(--red)';
+          return <button key={k} onClick={()=>{sound.click();setDiff(k);}} style={{padding:"8px 20px",borderRadius:20,
+            background:diff===k?c+"15":"rgba(255,255,255,0.03)",border:`1.5px solid ${diff===k?c:'var(--border)'}`,
+            color:diff===k?c:"var(--text-dim)",cursor:"pointer",fontFamily:"'Noto Sans KR'",fontWeight:600,fontSize:14,transition:"all 0.2s"
+          }}>{v.emoji} {v.label}</button>;
         })}
       </div>
-
-      {/* Tip */}
-      <div className="card" style={{ marginTop:28, fontSize:13, color:"var(--text-dim)", lineHeight:1.9 }}>
-        💡 <strong style={{ color:"var(--blue)" }}>타자 꿀팁</strong><br/>
+      {/* Speed indicator */}
+      <div style={{textAlign:"center",marginBottom:24}}>
+        <div style={{display:"inline-flex",alignItems:"center",gap:10,padding:"8px 20px",borderRadius:20,background:"rgba(255,255,255,0.03)",border:"1px solid var(--border)"}}>
+          <span style={{fontSize:12,color:"var(--text-dim)"}}>🎮 낙하 속도</span>
+          <div style={{display:"flex",gap:3}}>
+            {[1,2,3].map(i=>{
+              const lvl=diff==='easy'?1:diff==='medium'?2:3;
+              const ac=i<=lvl;
+              return <div key={i} style={{width:20,height:8,borderRadius:4,transition:"all 0.3s",
+                background:ac?(diff==='easy'?'var(--green)':diff==='medium'?'var(--blue)':'var(--red)'):"rgba(255,255,255,0.08)"
+              }}/>;
+            })}
+          </div>
+          <span style={{fontSize:13,fontWeight:700,color:diff==='easy'?'var(--green)':diff==='medium'?'var(--blue)':'var(--red)'}}>{fc.label}</span>
+        </div>
+      </div>
+      {/* Mode cards */}
+      <div style={{display:"flex",flexDirection:"column",gap:12}}>
+        {modes.map((m,i)=>{
+          const b=best[m.id+"_"+diff];
+          return <button key={m.id} onClick={()=>onStart(m.id)} className="anim-up"
+            style={{display:"flex",alignItems:"center",gap:16,padding:20,borderRadius:16,background:"var(--bg-card)",border:"1px solid var(--border)",
+              cursor:"pointer",textAlign:"left",width:"100%",transition:"all 0.25s",animationDelay:`${i*0.08}s`,overflow:"hidden"}}
+            onMouseOver={e=>{e.currentTarget.style.borderColor=m.color;e.currentTarget.style.transform="translateY(-2px)";}}
+            onMouseOut={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.transform="translateY(0)";}}
+            onTouchStart={e=>e.currentTarget.style.borderColor=m.color}
+            onTouchEnd={e=>setTimeout(()=>{if(e.currentTarget)e.currentTarget.style.borderColor="var(--border)";},200)}
+          >
+            <div style={{fontSize:32,width:56,height:56,borderRadius:14,background:m.bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{m.icon}</div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:18,fontWeight:700,color:"var(--text)"}}>{m.title}</div>
+              <div style={{fontSize:13,color:"var(--text-dim)",marginTop:2}}>{m.desc}</div>
+              {b>0&&<div style={{fontSize:11,color:"var(--gold)",marginTop:4}}>🏆 최고: {b.toLocaleString()}점</div>}
+            </div>
+            <div style={{color:m.color,fontSize:22,fontWeight:300,flexShrink:0}}>›</div>
+          </button>;
+        })}
+      </div>
+      <div className="card" style={{marginTop:28,fontSize:13,color:"var(--text-dim)",lineHeight:1.9}}>
+        💡 <strong style={{color:"var(--blue)"}}>타자 꿀팁</strong><br/>
         • 키보드의 ㅋ, ㅎ에 검지 손가락을 올려놓으세요 (홈 포지션)<br/>
         • 처음엔 <strong>정확하게</strong>, 익숙해지면 <strong>빠르게</strong>!<br/>
         • 하루 10분이면 한 달 뒤 달라진 실력을 느낄 수 있어요
@@ -462,118 +287,75 @@ function MenuScreen({ onStart, difficulty, setDifficulty, name, bestScores, curr
 }
 
 // ═══════════════════════════════════════
-//  HEADER & STAT BADGE (shared)
+//  SHARED
 // ═══════════════════════════════════════
-function GameHeader({ title, icon, color, onBack }) {
-  return (
-    <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:16 }}>
-      <button className="btn btn-secondary" onClick={onBack} style={{ padding:"8px 14px", fontSize:14 }}>← 나가기</button>
-      <span style={{ fontSize:22 }}>{icon}</span>
-      <span style={{ fontSize:18, fontWeight:700, color }}>{title}</span>
-    </div>
-  );
+function GameHeader({title,icon,color,onBack}) {
+  return <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:16}}>
+    <button className="btn btn-secondary" onClick={onBack} style={{padding:"8px 14px",fontSize:14}}>← 나가기</button>
+    <span style={{fontSize:22}}>{icon}</span>
+    <span style={{fontSize:18,fontWeight:700,color}}>{title}</span>
+  </div>;
 }
-
-function StatBadge({ label, value, color }) {
-  return (
-    <div className="stat-badge" style={{ background:`${color}10`, border:`1px solid ${color}25` }}>
-      <div className="label">{label}</div>
-      <div className="value" style={{ color }}>{value}</div>
-    </div>
-  );
+function StatBadge({label,value,color}) {
+  return <div className="stat-badge" style={{background:`${color}10`,border:`1px solid ${color}25`}}>
+    <div className="label">{label}</div><div className="value" style={{color}}>{value}</div>
+  </div>;
 }
 
 // ═══════════════════════════════════════
 //  WORD MODE
 // ═══════════════════════════════════════
-function WordMode({ difficulty, onEnd, stats, setStats }) {
-  const pool = WORDS[difficulty].words;
-  const total = 25;
-  const [words] = useState(() => { const s=[]; while(s.length<total) s.push(...shuffle(pool)); return s.slice(0,total); });
-  const [idx, setIdx] = useState(0);
-  const [input, setInput] = useState("");
-  const [timeLeft, setTimeLeft] = useState(60);
-  const [results, setResults] = useState([]);
-  const [msg, setMsg] = useState("");
-  const inputRef = useRef(null);
+function WordMode({diff,onEnd,stats,setStats}) {
+  const sound=useContext(SoundContext);
+  const pool=WORDS[diff].words; const total=25;
+  const [words]=useState(()=>{const s=[];while(s.length<total)s.push(...shuffle(pool));return s.slice(0,total);});
+  const [idx,setIdx]=useState(0);
+  const [input,setInput]=useState("");
+  const [timeLeft,setTimeLeft]=useState(60);
+  const [results,setResults]=useState([]);
+  const [msg,setMsg]=useState("");
+  const inputRef=useRef(null);
 
-  useEffect(() => { inputRef.current?.focus(); }, []);
-  useEffect(() => {
-    if (timeLeft <= 0) { finish(); return; }
-    const t = setTimeout(() => setTimeLeft(p => p-1), 1000);
-    return () => clearTimeout(t);
-  }, [timeLeft]);
+  useEffect(()=>{inputRef.current?.focus();},[]);
+  useEffect(()=>{if(timeLeft<=0){finish();return;}if(timeLeft<=3)sound.countdown(timeLeft);const t=setTimeout(()=>setTimeLeft(p=>p-1),1000);return()=>clearTimeout(t);},[timeLeft]);
 
-  const finish = () => {
-    const elapsed = (Date.now() - stats.startTime) / 60000;
-    onEnd({ ...stats, elapsed, lastMode:"word" });
-  };
-
-  const submit = () => {
-    const v = input.trim();
-    if (!v) return;
-    const ok = v === words[idx];
-    const chars = getKoreanStrokes(v);
-    setResults(p => [...p, ok]);
-    setStats(p => ({
-      ...p,
-      totalChars: p.totalChars + (ok ? chars : 0),
-      correct: p.correct + (ok?1:0),
-      wrong: p.wrong + (ok?0:1),
-      score: p.score + (ok ? chars*10 : 0)
-    }));
-    setMsg(ok ? pick(ENCOURAGE.great) : pick(ENCOURAGE.miss));
+  const finish=()=>onEnd({...stats,elapsed:(Date.now()-stats.startTime)/60000,lastMode:"word"});
+  const submit=()=>{
+    const v=input.trim();if(!v)return;
+    const ok=v===words[idx]; const chars=getKS(v);
+    if(ok){sound.correct();setMsg(pick(ENCOURAGE.great));}else{sound.wrong();setMsg(pick(ENCOURAGE.miss));}
+    setResults(p=>[...p,ok]);
+    setStats(p=>({...p,totalChars:p.totalChars+(ok?chars:0),correct:p.correct+(ok?1:0),wrong:p.wrong+(ok?0:1),score:p.score+(ok?chars*10:0)}));
     setInput("");
-    if (idx+1 >= total) finish();
-    else setIdx(p => p+1);
+    if(idx+1>=total)finish();else setIdx(p=>p+1);
   };
 
-  const elapsed = (Date.now() - stats.startTime) / 60000;
-  const cpm = Math.round(stats.totalChars / Math.max(elapsed, 0.01));
-  const acc = (stats.correct+stats.wrong)>0 ? Math.round(stats.correct/(stats.correct+stats.wrong)*100) : 100;
+  const el=(Date.now()-stats.startTime)/60000;
+  const cpm=Math.round(stats.totalChars/Math.max(el,0.01));
+  const acc=(stats.correct+stats.wrong)>0?Math.round(stats.correct/(stats.correct+stats.wrong)*100):100;
 
   return (
-    <div style={{ paddingTop:12 }}>
+    <div style={{paddingTop:12}}>
       <GameHeader title="단어 연습" icon="✏️" color="var(--green)" onBack={finish} />
       <div className="stat-row">
         <StatBadge label="시간" value={`${timeLeft}초`} color={timeLeft<=10?"var(--red)":"var(--green)"} />
-        <StatBadge label="타수" value={`${cpm}`} color="var(--blue)" />
+        <StatBadge label="타수" value={cpm} color="var(--blue)" />
         <StatBadge label="정확도" value={`${acc}%`} color="var(--gold)" />
         <StatBadge label="점수" value={stats.score} color="var(--purple)" />
       </div>
-
-      <div className="progress-bar">
-        <div className="fill" style={{ width:`${idx/total*100}%`, background:"linear-gradient(90deg, var(--green), var(--blue))" }} />
+      <div className="progress-bar"><div className="fill" style={{width:`${idx/total*100}%`,background:"linear-gradient(90deg,var(--green),var(--blue))"}}/></div>
+      <div style={{textAlign:"center",margin:"24px 0 16px"}}>
+        <div style={{fontSize:12,color:"var(--text-dim)",marginBottom:8}}>{idx+1}/{total}</div>
+        <div key={idx} className="anim-pop" style={{fontSize:"clamp(36px,10vw,56px)",fontWeight:900,color:"#fff",padding:"20px 0",textShadow:"0 0 40px var(--green-glow)"}}>{words[idx]}</div>
+        {msg&&<div style={{fontSize:14,color:"var(--gold)",minHeight:24}}>{msg}</div>}
       </div>
-
-      {/* Word Display */}
-      <div style={{ textAlign:"center", margin:"24px 0 16px" }}>
-        <div style={{ fontSize:12, color:"var(--text-dim)", marginBottom:8 }}>{idx+1} / {total}</div>
-        <div key={idx} className="anim-pop" style={{
-          fontSize:"clamp(36px, 10vw, 56px)", fontWeight:900,
-          color:"#fff", padding:"20px 0",
-          textShadow:"0 0 40px var(--green-glow)"
-        }}>
-          {words[idx]}
-        </div>
-        {msg && <div style={{ fontSize:14, color:"var(--gold)", minHeight:24, transition:"all 0.2s" }}>{msg}</div>}
+      <div style={{maxWidth:440,margin:"16px auto 0"}}>
+        <input ref={inputRef} className="text-input" value={input} onChange={e=>{sound.type();setInput(e.target.value);}}
+          onKeyDown={e=>{if(e.key==="Enter")submit();}} placeholder="여기에 입력 → Enter"
+          autoFocus autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" />
       </div>
-
-      {/* Input */}
-      <div style={{ maxWidth:440, margin:"16px auto 0" }}>
-        <input ref={inputRef} className="text-input" value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => { if(e.key==="Enter") submit(); }}
-          placeholder="여기에 입력 → Enter"
-          autoFocus autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false"
-        />
-      </div>
-
-      {/* Dots */}
-      <div style={{ display:"flex", justifyContent:"center", gap:5, marginTop:20, flexWrap:"wrap" }}>
-        {results.slice(-20).map((r,i) => (
-          <div key={i} style={{ width:8, height:8, borderRadius:"50%", background:r?"var(--green)":"var(--red)", opacity:0.8 }} />
-        ))}
+      <div style={{display:"flex",justifyContent:"center",gap:5,marginTop:20,flexWrap:"wrap"}}>
+        {results.slice(-20).map((r,i)=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:r?"var(--green)":"var(--red)",opacity:0.8}}/>)}
       </div>
     </div>
   );
@@ -582,221 +364,172 @@ function WordMode({ difficulty, onEnd, stats, setStats }) {
 // ═══════════════════════════════════════
 //  SENTENCE MODE
 // ═══════════════════════════════════════
-function SentenceMode({ onEnd, stats, setStats }) {
-  const [sentences] = useState(() => shuffle(SENTENCES).slice(0,10));
-  const [idx, setIdx] = useState(0);
-  const [input, setInput] = useState("");
-  const [timeLeft, setTimeLeft] = useState(120);
-  const inputRef = useRef(null);
+function SentenceMode({onEnd,stats,setStats}) {
+  const sound=useContext(SoundContext);
+  const [sentences]=useState(()=>shuffle(SENTENCES).slice(0,10));
+  const [idx,setIdx]=useState(0);
+  const [input,setInput]=useState("");
+  const [timeLeft,setTimeLeft]=useState(120);
+  const inputRef=useRef(null);
 
-  useEffect(() => { inputRef.current?.focus(); }, []);
-  useEffect(() => {
-    if (timeLeft <= 0) { finish(); return; }
-    const t = setTimeout(() => setTimeLeft(p => p-1), 1000);
-    return () => clearTimeout(t);
-  }, [timeLeft]);
+  useEffect(()=>{inputRef.current?.focus();},[]);
+  useEffect(()=>{if(timeLeft<=0){finish();return;}if(timeLeft<=3)sound.countdown(timeLeft);const t=setTimeout(()=>setTimeLeft(p=>p-1),1000);return()=>clearTimeout(t);},[timeLeft]);
 
-  const finish = () => {
-    const elapsed = (Date.now() - stats.startTime) / 60000;
-    onEnd({ ...stats, elapsed, lastMode:"sentence" });
+  const finish=()=>onEnd({...stats,elapsed:(Date.now()-stats.startTime)/60000,lastMode:"sentence"});
+  const target=sentences[idx]||"";
+  const onChange=e=>{
+    const v=e.target.value; sound.type(); setInput(v);
+    if(v===target){sound.correct();const ch=getKS(v);setStats(p=>({...p,totalChars:p.totalChars+ch,correct:p.correct+1,score:p.score+ch*10}));setInput("");
+      if(idx+1>=sentences.length)finish();else setIdx(p=>p+1);}
   };
-
-  const target = sentences[idx] || "";
-
-  const onChange = (e) => {
-    const v = e.target.value;
-    setInput(v);
-    if (v === target) {
-      const chars = getKoreanStrokes(v);
-      setStats(p => ({ ...p, totalChars: p.totalChars+chars, correct: p.correct+1, score: p.score + chars*10 }));
-      setInput("");
-      if (idx+1 >= sentences.length) finish();
-      else setIdx(p => p+1);
-    }
-  };
-
-  const elapsed = (Date.now() - stats.startTime) / 60000;
-  const cpm = Math.round(stats.totalChars / Math.max(elapsed, 0.01));
-
-  // Character coloring
-  const chars = [...target];
-  const inputChars = [...input];
+  const el=(Date.now()-stats.startTime)/60000;
+  const cpm=Math.round(stats.totalChars/Math.max(el,0.01));
+  const chars=[...target],ic=[...input];
 
   return (
-    <div style={{ paddingTop:12 }}>
+    <div style={{paddingTop:12}}>
       <GameHeader title="문장 연습" icon="📝" color="var(--blue)" onBack={finish} />
       <div className="stat-row">
         <StatBadge label="시간" value={`${timeLeft}초`} color={timeLeft<=10?"var(--red)":"var(--blue)"} />
-        <StatBadge label="타수" value={`${cpm}`} color="var(--green)" />
+        <StatBadge label="타수" value={cpm} color="var(--green)" />
         <StatBadge label="진행" value={`${idx+1}/${sentences.length}`} color="var(--gold)" />
         <StatBadge label="점수" value={stats.score} color="var(--purple)" />
       </div>
-
-      <div className="progress-bar">
-        <div className="fill" style={{ width:`${idx/sentences.length*100}%`, background:"linear-gradient(90deg, var(--blue), var(--green))" }} />
-      </div>
-
-      {/* Target */}
-      <div className="card" style={{ margin:"16px 0", fontSize:"clamp(16px, 4.5vw, 22px)", lineHeight:2, letterSpacing:0.5, minHeight:70 }}>
-        {chars.map((ch, i) => {
-          let color = "rgba(255,255,255,0.25)";
-          let fontWeight = 400;
-          if (i < inputChars.length) {
-            color = inputChars[i] === ch ? "var(--green)" : "var(--red)";
-            fontWeight = 600;
-          }
-          const isCursor = i === inputChars.length;
-          return (
-            <span key={i} style={{
-              color, fontWeight,
-              borderBottom: isCursor ? "2px solid var(--blue)" : "none",
-              transition:"color 0.1s"
-            }}>{ch}</span>
-          );
+      <div className="progress-bar"><div className="fill" style={{width:`${idx/sentences.length*100}%`,background:"linear-gradient(90deg,var(--blue),var(--green))"}}/></div>
+      <div className="card" style={{margin:"16px 0",fontSize:"clamp(16px,4.5vw,22px)",lineHeight:2,letterSpacing:0.5,minHeight:70}}>
+        {chars.map((ch,i)=>{
+          let color="rgba(255,255,255,0.25)",fw=400;
+          if(i<ic.length){color=ic[i]===ch?"var(--green)":"var(--red)";fw=600;}
+          return <span key={i} style={{color,fontWeight:fw,borderBottom:i===ic.length?"2px solid var(--blue)":"none",transition:"color 0.1s"}}>{ch}</span>;
         })}
       </div>
-
-      {/* Input */}
       <textarea ref={inputRef} className="text-input" value={input} onChange={onChange}
-        placeholder="위 문장을 그대로 입력하세요..."
-        rows={3}
+        placeholder="위 문장을 그대로 입력하세요..." rows={3}
         autoFocus autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false"
-        style={{ textAlign:"left", lineHeight:1.8, resize:"none" }}
-      />
+        style={{textAlign:"left",lineHeight:1.8,resize:"none"}} />
     </div>
   );
 }
 
 // ═══════════════════════════════════════
-//  FALLING WORDS MODE
+//  FALLING WORDS MODE (Enhanced Speed)
 // ═══════════════════════════════════════
-function FallingMode({ difficulty, onEnd, stats, setStats }) {
-  const [words, setWords] = useState([]);
-  const [input, setInput] = useState("");
-  const [timeLeft, setTimeLeft] = useState(90);
-  const [lives, setLives] = useState(5);
-  const [combo, setCombo] = useState(0);
-  const [maxCombo, setMaxCombo] = useState(0);
-  const [effects, setEffects] = useState([]);
-  const [flash, setFlash] = useState("");
-  const inputRef = useRef(null);
-  const animRef = useRef(null);
-  const lastSpawn = useRef(0);
-  const wordId = useRef(0);
-  const pool = useRef(shuffle(WORDS[difficulty].words));
-  const poolIdx = useRef(0);
-  const livesRef = useRef(5);
-  const timeRef = useRef(90);
+function FallingMode({diff,onEnd,stats,setStats}) {
+  const sound=useContext(SoundContext);
+  const cfg=WORDS[diff].falling;
 
-  const nextWord = () => {
-    if (poolIdx.current >= pool.current.length) {
-      pool.current = shuffle(WORDS[difficulty].words);
-      poolIdx.current = 0;
-    }
-    return pool.current[poolIdx.current++];
-  };
+  const [words,setWords]=useState([]);
+  const [input,setInput]=useState("");
+  const [timeLeft,setTimeLeft]=useState(90);
+  const [lives,setLives]=useState(5);
+  const [combo,setCombo]=useState(0);
+  const [maxCombo,setMaxCombo]=useState(0);
+  const [effects,setEffects]=useState([]);
+  const [flash,setFlash]=useState("");
+  const [speedLv,setSpeedLv]=useState(1);
+  const [speedNotice,setSpeedNotice]=useState("");
 
-  const spawn = useCallback(() => {
-    setWords(p => [...p, {
-      id: wordId.current++,
-      word: nextWord(),
-      x: 8 + Math.random() * 78,
-      y: -8,
-      speed: 0.012 + Math.random() * 0.018
-    }]);
-  }, []);
+  const inputRef=useRef(null);
+  const animRef=useRef(null);
+  const lastSpawn=useRef(0);
+  const wordId=useRef(0);
+  const livesRef=useRef(5);
+  const timeRef=useRef(90);
+  const startRef=useRef(Date.now());
+  const poolRef=useRef(shuffle(WORDS[diff].words));
+  const poolIdx=useRef(0);
 
-  useEffect(() => {
+  const nextWord=()=>{if(poolIdx.current>=poolRef.current.length){poolRef.current=shuffle(WORDS[diff].words);poolIdx.current=0;}return poolRef.current[poolIdx.current++];};
+
+  // Dynamic speed calculation
+  const getSpeed=useCallback(()=>{
+    const sec=(Date.now()-startRef.current)/1000;
+    return Math.min(cfg.baseSpeed + sec*cfg.accel, cfg.maxSpeed);
+  },[cfg]);
+
+  const getSpawnMs=useCallback(()=>{
+    const sec=(Date.now()-startRef.current)/1000;
+    return Math.max(cfg.spawnMs - sec*10, 700);
+  },[cfg]);
+
+  const spawn=useCallback(()=>{
+    const spd=getSpeed();
+    const v=(Math.random()-0.3)*cfg.speedVar;
+    setWords(p=>[...p,{id:wordId.current++,word:nextWord(),x:8+Math.random()*78,y:-8,speed:spd+v}]);
+  },[getSpeed,cfg]);
+
+  useEffect(()=>{
     inputRef.current?.focus();
+    startRef.current=Date.now();
     spawn(); spawn();
 
-    let lastTime = performance.now();
-    const loop = (time) => {
-      const dt = time - lastTime;
-      lastTime = time;
-
-      if (time - lastSpawn.current > 2400 - Math.min((90-timeRef.current)*12, 900)) {
-        spawn();
-        lastSpawn.current = time;
-      }
-
-      setWords(prev => {
-        const alive = [];
-        let missed = 0;
-        for (const w of prev) {
-          const ny = w.y + w.speed * dt * 0.055;
-          if (ny > 108) missed++;
-          else alive.push({ ...w, y: ny });
-        }
-        if (missed > 0) {
-          livesRef.current = Math.max(0, livesRef.current - missed);
-          setLives(livesRef.current);
-          setCombo(0);
-          setFlash("miss");
-          setTimeout(() => setFlash(""), 300);
-        }
+    let lt=performance.now();
+    const loop=t=>{
+      const dt=t-lt; lt=t;
+      if(t-lastSpawn.current>getSpawnMs()){spawn();lastSpawn.current=t;}
+      setWords(prev=>{
+        const alive=[];let missed=0;
+        for(const w of prev){const ny=w.y+w.speed*dt*0.065;if(ny>108)missed++;else alive.push({...w,y:ny});}
+        if(missed>0){livesRef.current=Math.max(0,livesRef.current-missed);setLives(livesRef.current);setCombo(0);setFlash("miss");sound.miss();setTimeout(()=>setFlash(""),300);}
         return alive;
       });
-
-      if (livesRef.current > 0 && timeRef.current > 0) {
-        animRef.current = requestAnimationFrame(loop);
-      }
+      if(livesRef.current>0&&timeRef.current>0) animRef.current=requestAnimationFrame(loop);
     };
-    animRef.current = requestAnimationFrame(loop);
-    return () => { if(animRef.current) cancelAnimationFrame(animRef.current); };
-  }, []);
+    animRef.current=requestAnimationFrame(loop);
+    return()=>{if(animRef.current)cancelAnimationFrame(animRef.current);};
+  },[]);
 
-  useEffect(() => {
-    if (lives <= 0 || timeLeft <= 0) {
-      if(animRef.current) cancelAnimationFrame(animRef.current);
-      const elapsed = (Date.now() - stats.startTime) / 60000;
-      onEnd({ ...stats, elapsed, lastMode:"falling", maxCombo });
+  // Speed level tracking — every 15s
+  useEffect(()=>{
+    const iv=setInterval(()=>{
+      const sec=(Date.now()-startRef.current)/1000;
+      const nl=Math.min(Math.floor(sec/15)+1,6);
+      setSpeedLv(prev=>{
+        if(nl>prev&&nl>1){sound.levelUp();setSpeedNotice(`⚡ 속도 ${nl}단계!`);setTimeout(()=>setSpeedNotice(""),2000);}
+        return nl;
+      });
+    },1000);
+    return()=>clearInterval(iv);
+  },[]);
+
+  useEffect(()=>{
+    if(lives<=0||timeLeft<=0){
+      if(animRef.current)cancelAnimationFrame(animRef.current);
+      onEnd({...stats,elapsed:(Date.now()-stats.startTime)/60000,lastMode:"falling",maxCombo});
       return;
     }
-    const t = setTimeout(() => { setTimeLeft(p => { timeRef.current = p-1; return p-1; }); }, 1000);
-    return () => clearTimeout(t);
-  }, [timeLeft, lives]);
+    if(timeLeft<=3)sound.countdown(timeLeft);
+    const t=setTimeout(()=>{setTimeLeft(p=>{timeRef.current=p-1;return p-1;});},1000);
+    return()=>clearTimeout(t);
+  },[timeLeft,lives]);
 
-  const submit = () => {
-    const v = input.trim();
-    if (!v) return;
-    const mi = words.findIndex(w => w.word === v);
-    if (mi !== -1) {
-      const matched = words[mi];
-      const chars = getKoreanStrokes(v);
-      const nc = combo + 1;
-      const bonus = Math.floor(nc / 5) * 50;
-      const pts = chars * 10 + bonus;
-
-      setEffects(p => [...p, { id:Date.now()+Math.random(), x:matched.x, y:matched.y, text:`+${pts}` }]);
-      setTimeout(() => setEffects(p => p.slice(-5)), 900);
-
-      setWords(p => p.filter((_,i) => i !== mi));
-      setCombo(nc);
-      setMaxCombo(p => Math.max(p, nc));
-      setStats(p => ({
-        ...p, totalChars:p.totalChars+chars, correct:p.correct+1, score:p.score+pts
-      }));
+  const submit=()=>{
+    const v=input.trim();if(!v)return;
+    const mi=words.findIndex(w=>w.word===v);
+    if(mi!==-1){
+      const m=words[mi];const ch=getKS(v);const nc=combo+1;const bonus=Math.floor(nc/5)*50;const pts=ch*10+bonus;
+      sound.combo(nc);
+      setEffects(p=>[...p,{id:Date.now()+Math.random(),x:m.x,y:m.y,text:`+${pts}`}]);
+      setTimeout(()=>setEffects(p=>p.slice(-5)),900);
+      setWords(p=>p.filter((_,i)=>i!==mi));
+      setCombo(nc);setMaxCombo(p=>Math.max(p,nc));
+      setStats(p=>({...p,totalChars:p.totalChars+ch,correct:p.correct+1,score:p.score+pts}));
       setFlash("hit");
-    } else {
-      setCombo(0);
-      setStats(p => ({ ...p, wrong:p.wrong+1 }));
-      setFlash("miss");
-    }
-    setTimeout(() => setFlash(""), 250);
+    } else {sound.wrong();setCombo(0);setStats(p=>({...p,wrong:p.wrong+1}));setFlash("miss");}
+    setTimeout(()=>setFlash(""),250);
     setInput("");
   };
 
-  const elapsed = (Date.now()-stats.startTime)/60000;
-  const cpm = Math.round(stats.totalChars/Math.max(elapsed,0.01));
+  const el=(Date.now()-stats.startTime)/60000;
+  const cpm=Math.round(stats.totalChars/Math.max(el,0.01));
+  const speedPct=Math.round(((getSpeed()-cfg.baseSpeed)/(cfg.maxSpeed-cfg.baseSpeed))*100);
 
   return (
-    <div style={{ paddingTop:12 }}>
-      <GameHeader title="낙하 게임" icon="🎮" color="var(--red)" onBack={() => {
-        if(animRef.current) cancelAnimationFrame(animRef.current);
-        onEnd({ ...stats, elapsed, lastMode:"falling", maxCombo });
+    <div style={{paddingTop:12}}>
+      <GameHeader title={`낙하 게임 (${WORDS[diff].falling.label})`} icon="🎮" color="var(--red)" onBack={()=>{
+        if(animRef.current)cancelAnimationFrame(animRef.current);
+        onEnd({...stats,elapsed:el,lastMode:"falling",maxCombo});
       }} />
-
       <div className="stat-row">
         <StatBadge label="시간" value={`${timeLeft}초`} color={timeLeft<=15?"var(--red)":"var(--green)"} />
         <StatBadge label="타수" value={cpm} color="var(--blue)" />
@@ -804,180 +537,134 @@ function FallingMode({ difficulty, onEnd, stats, setStats }) {
         <StatBadge label="점수" value={stats.score} color="var(--purple)" />
       </div>
 
-      {/* Lives */}
-      <div style={{ textAlign:"center", marginBottom:8, fontSize:18, letterSpacing:4 }}>
-        {Array.from({length:5}).map((_,i) => (
-          <span key={i} style={{ opacity: i < lives ? 1 : 0.2, transition:"opacity 0.3s" }}>❤️</span>
-        ))}
+      {/* Lives + Speed */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,padding:"0 4px"}}>
+        <div style={{fontSize:18,letterSpacing:4}}>
+          {Array.from({length:5}).map((_,i)=><span key={i} style={{opacity:i<lives?1:0.2,transition:"opacity 0.3s"}}>❤️</span>)}
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <span style={{fontSize:11,color:"var(--text-dim)"}}>속도 Lv.{speedLv}</span>
+          <div style={{width:60,height:6,borderRadius:3,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
+            <div style={{height:"100%",borderRadius:3,transition:"width 0.5s,background 0.5s",
+              width:`${Math.max(10,speedPct)}%`,
+              background:speedPct<40?"var(--green)":speedPct<70?"var(--orange)":"var(--red)"
+            }}/>
+          </div>
+        </div>
       </div>
 
       {/* Game Area */}
       <div style={{
-        position:"relative", height:"clamp(300px, 55vh, 440px)", borderRadius:16,
-        background:"rgba(0,0,0,0.3)", border:"1px solid var(--border)",
-        overflow:"hidden", marginBottom:16,
-        boxShadow: flash==="hit"?"inset 0 0 40px var(--green-glow)" : flash==="miss"?"inset 0 0 40px var(--red-glow)":"none",
+        position:"relative",height:"clamp(300px,55vh,440px)",borderRadius:16,
+        background:"rgba(0,0,0,0.3)",border:"1px solid var(--border)",overflow:"hidden",marginBottom:16,
+        boxShadow:flash==="hit"?"inset 0 0 40px var(--green-glow)":flash==="miss"?"inset 0 0 40px var(--red-glow)":"none",
         transition:"box-shadow 0.2s"
       }}>
         {/* Danger zone */}
-        <div style={{
-          position:"absolute", bottom:0, left:0, right:0, height:45,
-          background:"linear-gradient(to top, rgba(248,113,113,0.12), transparent)",
-          borderTop:"1px dashed rgba(248,113,113,0.25)"
-        }}>
-          <div style={{ textAlign:"center", paddingTop:14, fontSize:11, color:"var(--red)", opacity:0.5 }}>
-            ⚠️ 위험 구역
-          </div>
+        <div style={{position:"absolute",bottom:0,left:0,right:0,height:45,background:"linear-gradient(to top,rgba(248,113,113,0.12),transparent)",borderTop:"1px dashed rgba(248,113,113,0.25)"}}>
+          <div style={{textAlign:"center",paddingTop:14,fontSize:11,color:"var(--red)",opacity:0.5}}>⚠️ 위험 구역</div>
         </div>
 
-        {/* Words */}
-        {words.map(w => (
-          <div key={w.id} style={{
-            position:"absolute",
-            left:`${w.x}%`, top:`${w.y}%`,
-            transform:"translate(-50%,-50%)",
-            padding:"7px 16px", borderRadius:10,
-            background: w.y>70 ? "rgba(248,113,113,0.15)" : "rgba(34,197,94,0.08)",
-            border:`1.5px solid ${w.y>70?"var(--red)":"rgba(34,197,94,0.25)"}`,
-            color: w.y>70 ? "var(--red)" : "var(--text)",
-            fontSize:"clamp(13px, 3.5vw, 16px)", fontWeight:600,
-            whiteSpace:"nowrap",
-            textShadow: w.y>70 ? "0 0 8px var(--red-glow)" : "none",
-            transition:"background 0.5s, border-color 0.5s, color 0.5s"
-          }}>
-            {w.word}
-          </div>
-        ))}
+        {/* Speed notice */}
+        {speedNotice&&<div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",
+          fontSize:28,fontWeight:900,color:"var(--orange)",fontFamily:"'Black Han Sans',sans-serif",
+          textShadow:"0 0 20px rgba(251,146,60,0.5)",animation:"pop 0.5s ease",zIndex:20,pointerEvents:"none"
+        }}>{speedNotice}</div>}
+
+        {/* Falling words */}
+        {words.map(w=>{
+          const danger=w.y>70,warn=w.y>50;
+          return <div key={w.id} style={{
+            position:"absolute",left:`${w.x}%`,top:`${w.y}%`,transform:"translate(-50%,-50%)",
+            padding:"7px 16px",borderRadius:10,
+            background:danger?"rgba(248,113,113,0.2)":warn?"rgba(251,146,60,0.1)":"rgba(34,197,94,0.08)",
+            border:`1.5px solid ${danger?"var(--red)":warn?"var(--orange)":"rgba(34,197,94,0.25)"}`,
+            color:danger?"var(--red)":warn?"var(--orange)":"var(--text)",
+            fontSize:"clamp(13px,3.5vw,16px)",fontWeight:600,whiteSpace:"nowrap",
+            textShadow:danger?"0 0 8px var(--red-glow)":"none",
+            transition:"background 0.5s,border-color 0.5s,color 0.5s"
+          }}>{w.word}</div>;
+        })}
 
         {/* Score effects */}
-        {effects.map(e => (
-          <div key={e.id} style={{
-            position:"absolute", left:`${e.x}%`, top:`${e.y}%`,
-            color:"var(--gold)", fontSize:18, fontWeight:900,
-            fontFamily:"'JetBrains Mono', monospace",
-            animation:"floatUp 0.8s ease-out forwards",
-            pointerEvents:"none", zIndex:10
-          }}>{e.text}</div>
-        ))}
+        {effects.map(e=><div key={e.id} style={{
+          position:"absolute",left:`${e.x}%`,top:`${e.y}%`,color:"var(--gold)",fontSize:18,fontWeight:900,
+          fontFamily:"'JetBrains Mono',monospace",animation:"floatUp 0.8s ease-out forwards",pointerEvents:"none",zIndex:10
+        }}>{e.text}</div>)}
 
-        {/* Combo indicator */}
-        {combo >= 5 && (
-          <div style={{
-            position:"absolute", top:12, right:14,
-            fontSize:20, fontWeight:900, color:"var(--gold)",
-            fontFamily:"'JetBrains Mono', monospace",
-            animation:"pulse 0.6s ease infinite",
-            textShadow:"0 0 12px var(--gold-glow)"
-          }}>🔥 {combo}x COMBO</div>
-        )}
+        {/* Combo */}
+        {combo>=5&&<div style={{
+          position:"absolute",top:12,right:14,fontSize:20,fontWeight:900,color:"var(--gold)",
+          fontFamily:"'JetBrains Mono',monospace",animation:"pulse 0.6s ease infinite",textShadow:"0 0 12px var(--gold-glow)"
+        }}>🔥 {combo}x COMBO</div>}
       </div>
 
       {/* Input */}
-      <div style={{ maxWidth:440, margin:"0 auto" }}>
-        <input ref={inputRef} className="text-input" value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => { if(e.key==="Enter") submit(); }}
-          placeholder="단어 입력 → Enter"
+      <div style={{maxWidth:440,margin:"0 auto"}}>
+        <input ref={inputRef} className="text-input" value={input} onChange={e=>{sound.type();setInput(e.target.value);}}
+          onKeyDown={e=>{if(e.key==="Enter")submit();}} placeholder="단어 입력 → Enter"
           autoFocus autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false"
-          style={{
-            borderColor: combo>=10?"var(--gold)":flash==="hit"?"var(--green)":"var(--border)",
-            boxShadow: combo>=10?"0 0 0 3px var(--gold-glow)":"none"
-          }}
-        />
+          style={{borderColor:combo>=10?"var(--gold)":flash==="hit"?"var(--green)":"var(--border)",
+            boxShadow:combo>=10?"0 0 0 3px var(--gold-glow)":"none"}} />
       </div>
     </div>
   );
 }
 
 // ═══════════════════════════════════════
-//  RESULT SCREEN
+//  RESULT
 // ═══════════════════════════════════════
-function ResultScreen({ stats, name, onBack, onRetry }) {
-  const elapsed = stats.elapsed || 0.01;
-  const cpm = Math.round(stats.totalChars / Math.max(elapsed, 0.01));
-  const acc = (stats.correct+stats.wrong)>0 ? Math.round(stats.correct/(stats.correct+stats.wrong)*100) : 0;
-
-  const getRank = () => {
-    if (cpm >= 500 && acc >= 95) return { rank:"S", color:"var(--gold)", msg:"타자의 신! 🏆", bg:"var(--gold-glow)" };
-    if (cpm >= 350 && acc >= 90) return { rank:"A", color:"var(--green)", msg:"대단해요! 🌟", bg:"var(--green-glow)" };
-    if (cpm >= 250 && acc >= 80) return { rank:"B", color:"var(--blue)", msg:"잘하고 있어요! 👍", bg:"var(--blue-glow)" };
-    if (cpm >= 150 && acc >= 70) return { rank:"C", color:"var(--orange)", msg:"조금만 더 연습! 💪", bg:"rgba(251,146,60,0.25)" };
-    return { rank:"D", color:"var(--red)", msg:"꾸준히 연습하면 늘어요! 🌱", bg:"var(--red-glow)" };
+function ResultScreen({stats,name,onBack,onRetry}) {
+  const el=stats.elapsed||0.01;
+  const cpm=Math.round(stats.totalChars/Math.max(el,0.01));
+  const acc=(stats.correct+stats.wrong)>0?Math.round(stats.correct/(stats.correct+stats.wrong)*100):0;
+  const getRank=()=>{
+    if(cpm>=500&&acc>=95)return{rank:"S",color:"var(--gold)",msg:"타자의 신! 🏆",bg:"var(--gold-glow)"};
+    if(cpm>=350&&acc>=90)return{rank:"A",color:"var(--green)",msg:"대단해요! 🌟",bg:"var(--green-glow)"};
+    if(cpm>=250&&acc>=80)return{rank:"B",color:"var(--blue)",msg:"잘하고 있어요! 👍",bg:"var(--blue-glow)"};
+    if(cpm>=150&&acc>=70)return{rank:"C",color:"var(--orange)",msg:"조금만 더 연습! 💪",bg:"rgba(251,146,60,0.25)"};
+    return{rank:"D",color:"var(--red)",msg:"꾸준히 연습하면 늘어요! 🌱",bg:"var(--red-glow)"};
   };
-
-  const { rank, color, msg, bg } = getRank();
-
-  const items = [
-    { icon:"⌨️", label:"타자 속도", value:`${cpm} 타/분` },
-    { icon:"🎯", label:"정확도", value:`${acc}%` },
-    { icon:"🏆", label:"총 점수", value:stats.score.toLocaleString() },
-    { icon:"✅", label:"성공", value:stats.correct },
-    { icon:"❌", label:"실패", value:stats.wrong },
-    { icon:"⏱️", label:"소요 시간", value:`${Math.round(elapsed*60)}초` },
+  const{rank,color,msg,bg}=getRank();
+  const items=[
+    {icon:"⌨️",label:"타자 속도",value:`${cpm} 타/분`},{icon:"🎯",label:"정확도",value:`${acc}%`},
+    {icon:"🏆",label:"총 점수",value:stats.score.toLocaleString()},{icon:"✅",label:"성공",value:stats.correct},
+    {icon:"❌",label:"실패",value:stats.wrong},{icon:"⏱️",label:"소요 시간",value:`${Math.round(el*60)}초`},
   ];
-  if (stats.maxCombo) items.push({ icon:"🔥", label:"최대 콤보", value:`${stats.maxCombo}x` });
+  if(stats.maxCombo)items.push({icon:"🔥",label:"최대 콤보",value:`${stats.maxCombo}x`});
 
   return (
-    <div style={{ paddingTop:30, textAlign:"center" }}>
-      {/* New Record */}
-      {stats.newRecord && (
-        <div className="anim-pop" style={{
-          display:"inline-block", padding:"6px 20px", borderRadius:20,
-          background:"var(--gold-glow)", border:"1px solid var(--gold)",
-          color:"var(--gold)", fontSize:14, fontWeight:700, marginBottom:16
-        }}>🎉 새 기록 달성!</div>
-      )}
-
-      {/* Rank */}
-      <div className="anim-pop" style={{ marginBottom:24 }}>
-        <div style={{
-          display:"inline-flex", alignItems:"center", justifyContent:"center",
-          width:110, height:110, borderRadius:"50%",
-          background:bg, border:`3px solid ${color}`,
-          boxShadow:`0 0 60px ${bg}`,
-          fontFamily:"'JetBrains Mono', monospace",
-          fontSize:56, fontWeight:900, color
-        }}>{rank}</div>
-        <div style={{ marginTop:14, fontSize:20, fontWeight:700, color }}>{msg}</div>
-        {name && <div style={{ fontSize:13, color:"var(--text-dim)", marginTop:4 }}>{name}님의 결과</div>}
+    <div style={{paddingTop:30,textAlign:"center"}}>
+      {stats.newRecord&&<div className="anim-pop" style={{display:"inline-block",padding:"6px 20px",borderRadius:20,
+        background:"var(--gold-glow)",border:"1px solid var(--gold)",color:"var(--gold)",fontSize:14,fontWeight:700,marginBottom:16,
+        animation:"glow 1.5s ease infinite"}}>🎉 새 기록 달성!</div>}
+      <div className="anim-pop" style={{marginBottom:24}}>
+        <div style={{display:"inline-flex",alignItems:"center",justifyContent:"center",
+          width:110,height:110,borderRadius:"50%",background:bg,border:`3px solid ${color}`,boxShadow:`0 0 60px ${bg}`,
+          fontFamily:"'JetBrains Mono',monospace",fontSize:56,fontWeight:900,color}}>{rank}</div>
+        <div style={{marginTop:14,fontSize:20,fontWeight:700,color}}>{msg}</div>
+        {name&&<div style={{fontSize:13,color:"var(--text-dim)",marginTop:4}}>{name}님의 결과</div>}
       </div>
-
-      {/* Stats Grid */}
-      <div style={{
-        display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(120px, 1fr))",
-        gap:10, marginBottom:32
-      }}>
-        {items.map((s, i) => (
-          <div key={i} className="card anim-up" style={{ padding:14, textAlign:"center", animationDelay:`${i*0.05}s` }}>
-            <div style={{ fontSize:22, marginBottom:4 }}>{s.icon}</div>
-            <div style={{ fontSize:18, fontWeight:700, color:"var(--text)" }}>{s.value}</div>
-            <div style={{ fontSize:11, color:"var(--text-dim)", marginTop:2 }}>{s.label}</div>
-          </div>
-        ))}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))",gap:10,marginBottom:32}}>
+        {items.map((s,i)=><div key={i} className="card anim-up" style={{padding:14,textAlign:"center",animationDelay:`${i*0.05}s`}}>
+          <div style={{fontSize:22,marginBottom:4}}>{s.icon}</div>
+          <div style={{fontSize:18,fontWeight:700,color:"var(--text)"}}>{s.value}</div>
+          <div style={{fontSize:11,color:"var(--text-dim)",marginTop:2}}>{s.label}</div>
+        </div>)}
       </div>
-
-      {/* Buttons */}
-      <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
-        <button className="btn btn-primary" onClick={onRetry} style={{ minWidth:140 }}>🔄 다시 도전</button>
-        <button className="btn btn-secondary" onClick={onBack} style={{ minWidth:140 }}>📋 메뉴로</button>
+      <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
+        <button className="btn btn-primary" onClick={onRetry} style={{minWidth:140}}>🔄 다시 도전</button>
+        <button className="btn btn-secondary" onClick={onBack} style={{minWidth:140}}>📋 메뉴로</button>
       </div>
-
-      {/* Encouragement */}
-      <div className="card" style={{ marginTop:28, fontSize:13, color:"var(--text-dim)", lineHeight:1.8 }}>
-        {cpm < 200
-          ? "💬 정확하게 치는 습관을 먼저 만들고, 속도는 자연스럽게 따라옵니다. 오늘 연습한 것만으로도 충분히 잘하고 있어요!"
-          : cpm < 350
-          ? "💬 실력이 꽤 좋아요! 좀 더 빠르게 치는 연습을 해보세요. 목표는 350타/분!"
-          : "💬 엄청난 실력이에요! 이 정도면 타자 달인이라 불러도 손색없습니다. 🎖️"
-        }
+      <div className="card" style={{marginTop:28,fontSize:13,color:"var(--text-dim)",lineHeight:1.8}}>
+        {cpm<200?"💬 정확하게 치는 습관을 먼저 만들고, 속도는 자연스럽게 따라옵니다. 오늘 연습한 것만으로도 충분히 잘하고 있어요!"
+          :cpm<350?"💬 실력이 꽤 좋아요! 좀 더 빠르게 치는 연습을 해보세요. 목표는 350타/분!"
+          :"💬 엄청난 실력이에요! 이 정도면 타자 달인이라 불러도 손색없습니다. 🎖️"}
       </div>
     </div>
   );
 }
 
-// ═══════════════════════════════════════
-//  RENDER
-// ═══════════════════════════════════════
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
 </body>
