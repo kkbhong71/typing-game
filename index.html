@@ -43,16 +43,51 @@
   @keyframes floatUp{from{transform:translateY(0);opacity:1}to{transform:translateY(-50px);opacity:0}}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
   @keyframes glow{0%,100%{box-shadow:0 0 8px var(--gold-glow)}50%{box-shadow:0 0 24px var(--gold-glow)}}
+  @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
   .anim-up{animation:fadeInUp .4s ease both}
   .anim-pop{animation:pop .35s ease both}
-  .sound-toggle{position:fixed;top:12px;right:12px;z-index:100;width:40px;height:40px;border-radius:50%;
-    background:rgba(255,255,255,0.06);border:1px solid var(--border);cursor:pointer;
-    display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .2s}
-  .sound-toggle:hover{background:rgba(255,255,255,0.1)}
+
+  /* Sound panel area */
+  .sound-area{position:fixed;top:12px;right:12px;z-index:100}
+  .sound-btn{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,0.06);border:1px solid var(--border);
+    cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .2s;margin-left:auto}
+  .sound-btn:hover{background:rgba(255,255,255,0.1)}
+  .sound-panel{position:absolute;top:50px;right:0;width:260px;border-radius:14px;
+    background:rgba(14,17,28,0.97);border:1px solid rgba(255,255,255,0.1);
+    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    box-shadow:0 12px 40px rgba(0,0,0,0.5);padding:16px;animation:slideDown .2s ease;overflow:hidden}
+  .sound-panel-title{font-size:12px;color:var(--text-dim);margin-bottom:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+
+  .theme-option{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;cursor:pointer;
+    border:1.5px solid transparent;transition:all .2s;margin-bottom:6px;background:rgba(255,255,255,0.02)}
+  .theme-option:hover{background:rgba(255,255,255,0.05)}
+  .theme-option.active{border-color:var(--green);background:rgba(34,197,94,0.06)}
+  .theme-option .t-icon{font-size:22px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;
+    border-radius:10px;background:rgba(255,255,255,0.04);flex-shrink:0}
+  .theme-option .t-name{font-size:14px;font-weight:700;color:var(--text)}
+  .theme-option .t-desc{font-size:11px;color:var(--text-dim);margin-top:1px;line-height:1.4}
+  .theme-option.active .t-name{color:var(--green)}
+
+  .vol-section{margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06)}
+  .vol-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .vol-label span{font-size:12px;color:var(--text-dim)}
+  .vol-label strong{font-size:13px;color:var(--text);font-family:'JetBrains Mono',monospace}
+  .vol-slider{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;
+    background:rgba(255,255,255,0.08);outline:none;cursor:pointer}
+  .vol-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+    background:var(--green);border:2px solid rgba(255,255,255,0.2);cursor:pointer;box-shadow:0 2px 8px rgba(34,197,94,0.3)}
+  .vol-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--green);border:2px solid rgba(255,255,255,0.2);cursor:pointer}
+
+  .preview-btn{width:100%;margin-top:10px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);
+    background:rgba(255,255,255,0.03);color:var(--text-dim);font-size:12px;font-family:'Noto Sans KR',sans-serif;
+    cursor:pointer;transition:all .2s;font-weight:500}
+  .preview-btn:hover{background:rgba(255,255,255,0.06);color:var(--text)}
+
   @media(max-width:480px){
     #root{padding:10px}.card{padding:14px;border-radius:12px}
     .btn{padding:12px 20px;font-size:15px}.text-input{font-size:18px;padding:14px 16px}
     .stat-badge{min-width:60px;padding:5px 10px}.stat-badge .value{font-size:13px}
+    .sound-panel{width:240px;padding:14px;right:-4px}
   }
 </style>
 </head>
@@ -65,305 +100,349 @@
 const {useState,useEffect,useRef,useCallback,createContext,useContext}=React;
 
 // ═══════════════════════════════════════════════════
+//  SOUND THEME PRESETS
+// ═══════════════════════════════════════════════════
+const SOUND_THEMES = {
+  game: {
+    id:"game", icon:"🎮", name:"게임 모드", desc:"모든 소리 ON, 신나게!",
+    master: 0.7,
+    typing: true,   typingVol: 1.0,
+    effects: true,   effectsVol: 1.0,
+    alerts: true,    alertsVol: 1.0,
+    combo: true,     comboVol: 1.0,
+  },
+  classroom: {
+    id:"classroom", icon:"🏫", name:"교실 모드", desc:"타이핑 소리 OFF, 효과음 절반",
+    master: 0.4,
+    typing: false,   typingVol: 0,
+    effects: true,   effectsVol: 0.5,
+    alerts: true,    alertsVol: 0.6,
+    combo: true,     comboVol: 0.3,
+  },
+  minimal: {
+    id:"minimal", icon:"🔇", name:"최소 모드", desc:"정답/오답만 아주 작게",
+    master: 0.25,
+    typing: false,   typingVol: 0,
+    effects: true,   effectsVol: 0.3,
+    alerts: false,   alertsVol: 0,
+    combo: false,    comboVol: 0,
+  },
+  mute: {
+    id:"mute", icon:"🚫", name:"음소거", desc:"모든 소리 OFF",
+    master: 0,
+    typing: false,   typingVol: 0,
+    effects: false,  effectsVol: 0,
+    alerts: false,   alertsVol: 0,
+    combo: false,    comboVol: 0,
+  }
+};
+
+// ═══════════════════════════════════════════════════
 //  PREMIUM SOUND ENGINE
-//  - ADSR envelopes for natural attack/release
-//  - BiquadFilter for warm/bright tone shaping
-//  - Harmonic layering for rich textures
-//  - Reverb via convolver for spatial depth
-//  - Musical chord voicings
 // ═══════════════════════════════════════════════════
 class PremiumSound {
-  constructor(){this.ctx=null;this.enabled=true;this.master=null;this.reverb=null;this.reverbGain=null;this.dryGain=null;}
+  constructor(){
+    this.ctx=null; this.master=null; this.reverb=null; this.reverbGain=null; this.dryGain=null;
+    this.theme=SOUND_THEMES.game;
+    this.volumeOverride=null; // manual slider override
+  }
 
   async init(){
     if(this.ctx) return;
     try{
       this.ctx=new(window.AudioContext||window.webkitAudioContext)();
-      // Master bus
       this.master=this.ctx.createGain();
-      this.master.gain.value=0.6;
-      // Dry/Wet for reverb
-      this.dryGain=this.ctx.createGain();
-      this.dryGain.gain.value=0.75;
-      this.reverbGain=this.ctx.createGain();
-      this.reverbGain.gain.value=0.25;
-      // Generate impulse response for reverb
+      this.master.gain.value=this.theme.master;
+      this.dryGain=this.ctx.createGain(); this.dryGain.gain.value=0.75;
+      this.reverbGain=this.ctx.createGain(); this.reverbGain.gain.value=0.25;
       this.reverb=this.ctx.createConvolver();
-      this.reverb.buffer=this._createImpulse(0.6, 1.5);
-      // Routing: source → master → dry + reverb → destination
+      this.reverb.buffer=this._createImpulse(0.6,1.5);
       this.master.connect(this.dryGain);
       this.master.connect(this.reverb);
       this.reverb.connect(this.reverbGain);
       this.dryGain.connect(this.ctx.destination);
       this.reverbGain.connect(this.ctx.destination);
-    }catch(e){console.warn("Audio init failed");}
+    }catch(e){}
   }
 
-  _createImpulse(decay, duration){
-    const rate=this.ctx.sampleRate;
-    const len=rate*duration;
-    const buf=this.ctx.createBuffer(2,len,rate);
-    for(let ch=0;ch<2;ch++){
-      const d=buf.getChannelData(ch);
-      for(let i=0;i<len;i++){
-        d[i]=(Math.random()*2-1)*Math.pow(1-i/len, decay);
-      }
-    }
+  _createImpulse(decay,dur){
+    const r=this.ctx.sampleRate,len=r*dur,buf=this.ctx.createBuffer(2,len,r);
+    for(let ch=0;ch<2;ch++){const d=buf.getChannelData(ch);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,decay);}
     return buf;
   }
 
   _resume(){if(this.ctx&&this.ctx.state==="suspended")this.ctx.resume();}
 
-  // ── Core: single voice with ADSR + filter ──
-  _voice({freq, type="sine", attack=0.01, decay=0.1, sustain=0.3, release=0.2,
-           filterFreq=0, filterQ=1, filterType="lowpass", vol=0.15, detune=0, pan=0, dest=null}){
-    if(!this.ctx||!this.enabled) return;
-    this._resume();
-    const t=this.ctx.currentTime;
-    const dur=attack+decay+release;
-
-    const osc=this.ctx.createOscillator();
-    osc.type=type;
-    osc.frequency.value=freq;
-    osc.detune.value=detune;
-
-    const env=this.ctx.createGain();
-    // ADSR envelope
-    env.gain.setValueAtTime(0.001,t);
-    env.gain.linearRampToValueAtTime(vol,t+attack);             // Attack
-    env.gain.linearRampToValueAtTime(vol*sustain,t+attack+decay); // Decay→Sustain
-    env.gain.linearRampToValueAtTime(0.001,t+dur);               // Release
-
-    osc.connect(env);
-
-    // Optional filter for tone shaping
-    if(filterFreq>0){
-      const flt=this.ctx.createBiquadFilter();
-      flt.type=filterType;
-      flt.frequency.value=filterFreq;
-      flt.Q.value=filterQ;
-      env.connect(flt);
-      // Panning
-      if(pan!==0){
-        const panner=this.ctx.createStereoPanner();
-        panner.pan.value=pan;
-        flt.connect(panner);
-        panner.connect(dest||this.master);
-      } else {
-        flt.connect(dest||this.master);
-      }
-    } else {
-      if(pan!==0){
-        const panner=this.ctx.createStereoPanner();
-        panner.pan.value=pan;
-        env.connect(panner);
-        panner.connect(dest||this.master);
-      } else {
-        env.connect(dest||this.master);
-      }
-    }
-
-    osc.start(t);
-    osc.stop(t+dur+0.05);
+  setTheme(themeId){
+    this.theme = SOUND_THEMES[themeId] || SOUND_THEMES.game;
+    this.volumeOverride = null;
+    if(this.master) this.master.gain.value = this.theme.master;
   }
 
-  // ── Layered note: fundamental + harmonic for richness ──
-  _richNote({freq, attack=0.01, decay=0.15, sustain=0.2, release=0.3, vol=0.12, pan=0}){
-    // Fundamental (sine, warm)
-    this._voice({freq, type:"sine", attack, decay, sustain, release, vol, filterFreq:freq*4, filterQ:0.7, pan});
-    // Soft harmonic (triangle, one octave up, quieter)
-    this._voice({freq:freq*2, type:"triangle", attack:attack*1.5, decay, sustain:sustain*0.5, release:release*0.8, vol:vol*0.2, pan});
-    // Subtle 5th harmonic shimmer
-    this._voice({freq:freq*3, type:"sine", attack:attack*2, decay:decay*0.7, sustain:0, release:release*0.5, vol:vol*0.06, pan});
+  setVolume(v){
+    this.volumeOverride = v;
+    if(this.master) this.master.gain.value = v;
   }
 
-  // ── Soft filtered noise burst ──
-  _softNoise({duration=0.08, vol=0.06, filterFreq=3000, filterQ=0.5, attack=0.005}){
-    if(!this.ctx||!this.enabled) return;
-    this._resume();
-    const t=this.ctx.currentTime;
-    const sz=this.ctx.sampleRate*duration;
-    const buf=this.ctx.createBuffer(1,sz,this.ctx.sampleRate);
-    const d=buf.getChannelData(0);
-    for(let i=0;i<sz;i++) d[i]=(Math.random()*2-1);
+  getEffectiveVolume(){
+    return this.volumeOverride !== null ? this.volumeOverride : this.theme.master;
+  }
 
-    const src=this.ctx.createBufferSource();
-    src.buffer=buf;
+  isMuted(){ return this.getEffectiveVolume() <= 0.01; }
+
+  _voice({freq,type="sine",attack=0.01,decay=0.1,sustain=0.3,release=0.2,filterFreq=0,filterQ=1,filterType="lowpass",vol=0.15,detune=0,pan=0}){
+    if(!this.ctx||this.isMuted()) return;
+    this._resume(); const t=this.ctx.currentTime, dur=attack+decay+release;
+    const osc=this.ctx.createOscillator(); osc.type=type; osc.frequency.value=freq; osc.detune.value=detune;
     const env=this.ctx.createGain();
     env.gain.setValueAtTime(0.001,t);
     env.gain.linearRampToValueAtTime(vol,t+attack);
-    env.gain.exponentialRampToValueAtTime(0.001,t+duration);
-    const flt=this.ctx.createBiquadFilter();
-    flt.type="bandpass";
-    flt.frequency.value=filterFreq;
-    flt.Q.value=filterQ;
-    src.connect(flt);flt.connect(env);env.connect(this.master);
-    src.start(t);src.stop(t+duration+0.01);
+    env.gain.linearRampToValueAtTime(vol*sustain,t+attack+decay);
+    env.gain.linearRampToValueAtTime(0.001,t+dur);
+    osc.connect(env);
+    let last=env;
+    if(filterFreq>0){const f=this.ctx.createBiquadFilter();f.type=filterType;f.frequency.value=filterFreq;f.Q.value=filterQ;last.connect(f);last=f;}
+    if(pan!==0){const p=this.ctx.createStereoPanner();p.pan.value=pan;last.connect(p);last=p;}
+    last.connect(this.master); osc.start(t); osc.stop(t+dur+0.05);
   }
 
-  // ═══════════════════════════════════
-  //  PUBLIC SOUND EFFECTS
-  // ═══════════════════════════════════
+  _richNote({freq,attack=0.01,decay=0.15,sustain=0.2,release=0.3,vol=0.12,pan=0}){
+    this._voice({freq,type:"sine",attack,decay,sustain,release,vol,filterFreq:freq*4,filterQ:0.7,pan});
+    this._voice({freq:freq*2,type:"triangle",attack:attack*1.5,decay,sustain:sustain*0.5,release:release*0.8,vol:vol*0.2,pan});
+    this._voice({freq:freq*3,type:"sine",attack:attack*2,decay:decay*0.7,sustain:0,release:release*0.5,vol:vol*0.06,pan});
+  }
 
-  // 키 입력: 부드러운 마림바 탭
+  _softNoise({duration=0.08,vol=0.06,filterFreq=3000,filterQ=0.5,attack=0.005}){
+    if(!this.ctx||this.isMuted()) return;
+    this._resume(); const t=this.ctx.currentTime, sz=this.ctx.sampleRate*duration;
+    const buf=this.ctx.createBuffer(1,sz,this.ctx.sampleRate),d=buf.getChannelData(0);
+    for(let i=0;i<sz;i++) d[i]=Math.random()*2-1;
+    const src=this.ctx.createBufferSource(); src.buffer=buf;
+    const env=this.ctx.createGain(); env.gain.setValueAtTime(0.001,t);
+    env.gain.linearRampToValueAtTime(vol,t+attack); env.gain.exponentialRampToValueAtTime(0.001,t+duration);
+    const flt=this.ctx.createBiquadFilter(); flt.type="bandpass"; flt.frequency.value=filterFreq; flt.Q.value=filterQ;
+    src.connect(flt); flt.connect(env); env.connect(this.master);
+    src.start(t); src.stop(t+duration+0.01);
+  }
+
+  // ── Public Effects with Theme Gating ──
+
   type(){
-    const freq = 1200 + Math.random()*400;
-    this._voice({freq, type:"sine", attack:0.003, decay:0.04, sustain:0, release:0.03, vol:0.04,
-                 filterFreq:2500, filterQ:0.5});
-    this._softNoise({duration:0.02, vol:0.015, filterFreq:5000, attack:0.002});
+    if(!this.theme.typing) return;
+    const v=this.theme.typingVol;
+    const freq=1200+Math.random()*400;
+    this._voice({freq,type:"sine",attack:0.003,decay:0.04,sustain:0,release:0.03,vol:0.04*v,filterFreq:2500,filterQ:0.5});
+    this._softNoise({duration:0.02,vol:0.015*v,filterFreq:5000,attack:0.002});
   }
 
-  // 정답: 맑은 벨 코드 (메이저 트라이어드 아르페지오)
   correct(){
-    const base=523.25; // C5
-    const notes=[base, base*5/4, base*3/2]; // C-E-G 메이저 코드
-    notes.forEach((f,i)=>{
-      setTimeout(()=>{
-        this._richNote({freq:f, attack:0.008, decay:0.15, sustain:0.15, release:0.4, vol:0.1, pan:(i-1)*0.3});
-      }, i*55);
+    if(!this.theme.effects) return;
+    const v=this.theme.effectsVol;
+    const base=523.25;
+    [base,base*5/4,base*3/2].forEach((f,i)=>{
+      setTimeout(()=>this._richNote({freq:f,attack:0.008,decay:0.15,sustain:0.15,release:0.4,vol:0.1*v,pan:(i-1)*0.3}),i*55);
     });
-    // 스파클 노이즈
-    setTimeout(()=>this._softNoise({duration:0.12, vol:0.03, filterFreq:6000, filterQ:2, attack:0.01}), 120);
+    setTimeout(()=>this._softNoise({duration:0.12,vol:0.03*v,filterFreq:6000,filterQ:2,attack:0.01}),120);
   }
 
-  // 오답: 부드러운 경고 (마이너 2nd 불협화음, 낮은 톤)
   wrong(){
-    this._voice({freq:220, type:"triangle", attack:0.01, decay:0.12, sustain:0.1, release:0.2, vol:0.1,
-                 filterFreq:600, filterQ:0.8});
-    this._voice({freq:233, type:"sine", attack:0.015, decay:0.1, sustain:0.05, release:0.15, vol:0.06,
-                 filterFreq:500, filterQ:0.5});
-    this._softNoise({duration:0.06, vol:0.04, filterFreq:400, filterQ:1, attack:0.005});
+    if(!this.theme.effects) return;
+    const v=this.theme.effectsVol;
+    this._voice({freq:220,type:"triangle",attack:0.01,decay:0.12,sustain:0.1,release:0.2,vol:0.1*v,filterFreq:600,filterQ:0.8});
+    this._voice({freq:233,type:"sine",attack:0.015,decay:0.1,sustain:0.05,release:0.15,vol:0.06*v,filterFreq:500,filterQ:0.5});
+    this._softNoise({duration:0.06,vol:0.04*v,filterFreq:400,filterQ:1,attack:0.005});
   }
 
-  // 콤보: 점점 밝아지는 벨 + 5배수 팡파레
   combo(count){
-    const pitch = 440 + Math.min(count*20, 300);
-    // 기본 딩
-    this._richNote({freq:pitch, attack:0.005, decay:0.1, sustain:0.1, release:0.25, vol:0.09});
-    // 하모닉 장식음
-    setTimeout(()=>{
-      this._voice({freq:pitch*1.5, type:"sine", attack:0.005, decay:0.08, sustain:0, release:0.15, vol:0.04, pan:0.4});
-    },40);
-
-    // 5콤보 배수: 팡파레 (메이저7 아르페지오)
-    if(count%5===0 && count>0){
-      const fanfare=[523.25, 659.25, 783.99, 987.77, 1046.5]; // C-E-G-B-C
+    if(!this.theme.combo) return;
+    const v=this.theme.comboVol;
+    const pitch=440+Math.min(count*20,300);
+    this._richNote({freq:pitch,attack:0.005,decay:0.1,sustain:0.1,release:0.25,vol:0.09*v});
+    setTimeout(()=>this._voice({freq:pitch*1.5,type:"sine",attack:0.005,decay:0.08,sustain:0,release:0.15,vol:0.04*v,pan:0.4}),40);
+    if(count%5===0&&count>0){
       setTimeout(()=>{
-        fanfare.forEach((f,i)=>{
-          setTimeout(()=>{
-            this._richNote({freq:f, attack:0.006, decay:0.12, sustain:0.2, release:0.5, vol:0.08, pan:(i-2)*0.25});
-          }, i*70);
+        [523.25,659.25,783.99,987.77,1046.5].forEach((f,i)=>{
+          setTimeout(()=>this._richNote({freq:f,attack:0.006,decay:0.12,sustain:0.2,release:0.5,vol:0.08*v,pan:(i-2)*0.25}),i*70);
         });
-        // 심벌 스프래시
-        setTimeout(()=>this._softNoise({duration:0.25, vol:0.04, filterFreq:8000, filterQ:0.3, attack:0.01}), 250);
+        setTimeout(()=>this._softNoise({duration:0.25,vol:0.04*v,filterFreq:8000,filterQ:0.3,attack:0.01}),250);
       },100);
     }
   }
 
-  // 단어 놓침: 둔탁한 임팩트 + 저음 럼블
   miss(){
-    // 저음 임팩트
-    this._voice({freq:60, type:"sine", attack:0.005, decay:0.15, sustain:0, release:0.25, vol:0.18,
-                 filterFreq:200, filterQ:1.5});
-    // 중음 크런치
-    this._softNoise({duration:0.1, vol:0.08, filterFreq:300, filterQ:2, attack:0.003});
-    // 워닝 톤
-    setTimeout(()=>{
-      this._voice({freq:180, type:"triangle", attack:0.02, decay:0.08, sustain:0.05, release:0.15, vol:0.06,
-                   filterFreq:400, filterQ:0.7});
-    },60);
+    if(!this.theme.effects) return;
+    const v=this.theme.effectsVol;
+    this._voice({freq:60,type:"sine",attack:0.005,decay:0.15,sustain:0,release:0.25,vol:0.18*v,filterFreq:200,filterQ:1.5});
+    this._softNoise({duration:0.1,vol:0.08*v,filterFreq:300,filterQ:2,attack:0.003});
+    setTimeout(()=>this._voice({freq:180,type:"triangle",attack:0.02,decay:0.08,sustain:0.05,release:0.15,vol:0.06*v,filterFreq:400,filterQ:0.7}),60);
   }
 
-  // 속도 레벨업: 상승 글리산도 + 스파클
   levelUp(){
-    const notes=[392, 440, 523.25, 587.33, 659.25, 783.99]; // G-A-C-D-E-G
-    notes.forEach((f,i)=>{
-      setTimeout(()=>{
-        this._richNote({freq:f, attack:0.005, decay:0.08, sustain:0.1, release:0.2, vol:0.07+(i*0.008), pan:(i%2===0?-0.3:0.3)});
-      }, i*60);
+    if(!this.theme.alerts) return;
+    const v=this.theme.alertsVol;
+    [392,440,523.25,587.33,659.25,783.99].forEach((f,i)=>{
+      setTimeout(()=>this._richNote({freq:f,attack:0.005,decay:0.08,sustain:0.1,release:0.2,vol:(0.07+i*0.008)*v,pan:(i%2===0?-0.3:0.3)}),i*60);
     });
-    // 라이징 노이즈 스위프
-    setTimeout(()=>{
-      if(!this.ctx||!this.enabled) return;
-      this._resume();
-      const t=this.ctx.currentTime;
-      const dur=0.3;
-      const sz=this.ctx.sampleRate*dur;
-      const buf=this.ctx.createBuffer(1,sz,this.ctx.sampleRate);
-      const d=buf.getChannelData(0);
-      for(let i=0;i<sz;i++) d[i]=(Math.random()*2-1);
-      const src=this.ctx.createBufferSource();src.buffer=buf;
-      const env=this.ctx.createGain();
-      env.gain.setValueAtTime(0.001,t);
-      env.gain.linearRampToValueAtTime(0.04,t+0.05);
-      env.gain.linearRampToValueAtTime(0.001,t+dur);
-      const flt=this.ctx.createBiquadFilter();
-      flt.type="bandpass";flt.Q.value=3;
-      flt.frequency.setValueAtTime(1000,t);
-      flt.frequency.exponentialRampToValueAtTime(8000,t+dur);
-      src.connect(flt);flt.connect(env);env.connect(this.master);
-      src.start(t);src.stop(t+dur+0.01);
-    },200);
   }
 
-  // 카운트다운 3초: 부드러운 우드블록
   countdown(sec){
-    const freq = sec<=1 ? 880 : 660;
-    this._voice({freq, type:"sine", attack:0.003, decay:0.06, sustain:0, release:0.12, vol:0.1,
-                 filterFreq:freq*2, filterQ:1});
-    this._softNoise({duration:0.03, vol:0.03, filterFreq:4000, filterQ:2, attack:0.002});
+    if(!this.theme.alerts) return;
+    const v=this.theme.alertsVol;
+    this._voice({freq:sec<=1?880:660,type:"sine",attack:0.003,decay:0.06,sustain:0,release:0.12,vol:0.1*v,filterFreq:(sec<=1?880:660)*2,filterQ:1});
+    this._softNoise({duration:0.03,vol:0.03*v,filterFreq:4000,filterQ:2,attack:0.002});
   }
 
-  // 게임 오버: 하행 마이너 코드 프로그레션
   gameOver(){
-    // Am → Dm → E (느린 아르페지오)
-    const chords=[
-      [440, 523.25, 659.25],    // Am
-      [293.66, 349.23, 440],    // Dm
-      [246.94, 311.13, 369.99], // low B-Eb-F#(dim)
-    ];
-    chords.forEach((chord, ci)=>{
-      chord.forEach((f, ni)=>{
-        setTimeout(()=>{
-          this._richNote({freq:f, attack:0.02, decay:0.2, sustain:0.25, release:0.6,
-                          vol:0.07-(ci*0.015), pan:(ni-1)*0.3});
-        }, ci*280 + ni*50);
+    if(!this.theme.effects) return;
+    const v=this.theme.effectsVol;
+    [[440,523.25,659.25],[293.66,349.23,440],[246.94,311.13,369.99]].forEach((chord,ci)=>{
+      chord.forEach((f,ni)=>{
+        setTimeout(()=>this._richNote({freq:f,attack:0.02,decay:0.2,sustain:0.25,release:0.6,vol:(0.07-ci*0.015)*v,pan:(ni-1)*0.3}),ci*280+ni*50);
       });
     });
   }
 
-  // 새 기록: 화려한 팡파레 (메이저 스케일 런 + 코드)
   newRecord(){
-    // 빠른 스케일 런
-    const run=[523.25, 587.33, 659.25, 698.46, 783.99, 880, 987.77, 1046.5];
-    run.forEach((f,i)=>{
-      setTimeout(()=>{
-        this._voice({freq:f, type:"sine", attack:0.003, decay:0.06, sustain:0.05, release:0.12,
-                     vol:0.06+(i*0.005), pan:(i-3.5)*0.15});
-      }, i*50);
+    if(!this.theme.effects) return;
+    const v=this.theme.effectsVol;
+    [523.25,587.33,659.25,698.46,783.99,880,987.77,1046.5].forEach((f,i)=>{
+      setTimeout(()=>this._voice({freq:f,type:"sine",attack:0.003,decay:0.06,sustain:0.05,release:0.12,vol:(0.06+i*0.005)*v,pan:(i-3.5)*0.15}),i*50);
     });
-    // 피날레 코드 (C Major 7)
     setTimeout(()=>{
-      [1046.5, 1318.5, 1568, 1975.5].forEach((f,i)=>{
-        this._richNote({freq:f, attack:0.01, decay:0.2, sustain:0.35, release:0.8, vol:0.09, pan:(i-1.5)*0.25});
+      [1046.5,1318.5,1568,1975.5].forEach((f,i)=>{
+        this._richNote({freq:f,attack:0.01,decay:0.2,sustain:0.35,release:0.8,vol:0.09*v,pan:(i-1.5)*0.25});
       });
-      // 심벌 워시
-      this._softNoise({duration:0.5, vol:0.04, filterFreq:6000, filterQ:0.3, attack:0.02});
-    }, 420);
+      this._softNoise({duration:0.5,vol:0.04*v,filterFreq:6000,filterQ:0.3,attack:0.02});
+    },420);
   }
 
-  // UI 클릭: 가벼운 팝
   click(){
-    this._voice({freq:800, type:"sine", attack:0.003, decay:0.03, sustain:0, release:0.04, vol:0.06,
-                 filterFreq:2000, filterQ:0.5});
-    this._softNoise({duration:0.015, vol:0.02, filterFreq:4000, attack:0.002});
+    if(this.isMuted()) return;
+    this._voice({freq:800,type:"sine",attack:0.003,decay:0.03,sustain:0,release:0.04,vol:0.06,filterFreq:2000,filterQ:0.5});
+    this._softNoise({duration:0.015,vol:0.02,filterFreq:4000,attack:0.002});
   }
 
-  toggle(){this.enabled=!this.enabled;return this.enabled;}
+  // Preview: play a short demo sequence for the current theme
+  preview(){
+    this.correct();
+    setTimeout(()=>this.type(),400);
+    setTimeout(()=>this.type(),500);
+    setTimeout(()=>this.combo(5),800);
+  }
 }
 
 const soundEngine=new PremiumSound();
 const SoundContext=createContext(soundEngine);
+
+// ═══════════════════════════════════════
+//  SOUND PANEL COMPONENT
+// ═══════════════════════════════════════
+function SoundPanel({themeId, setThemeId}){
+  const sound=useContext(SoundContext);
+  const [open,setOpen]=useState(false);
+  const [vol,setVol]=useState(()=>Math.round(sound.getEffectiveVolume()*100));
+  const panelRef=useRef(null);
+
+  // Close panel on outside click
+  useEffect(()=>{
+    if(!open) return;
+    const handler=e=>{
+      if(panelRef.current&&!panelRef.current.contains(e.target))setOpen(false);
+    };
+    document.addEventListener("mousedown",handler);
+    document.addEventListener("touchstart",handler);
+    return()=>{document.removeEventListener("mousedown",handler);document.removeEventListener("touchstart",handler);};
+  },[open]);
+
+  const selectTheme=(id)=>{
+    sound.init();
+    sound.setTheme(id);
+    setThemeId(id);
+    setVol(Math.round(sound.theme.master*100));
+    localStorage.setItem("typing_theme",id);
+    sound.click();
+  };
+
+  const handleVol=(e)=>{
+    const v=parseInt(e.target.value);
+    setVol(v);
+    sound.init();
+    sound.setVolume(v/100);
+  };
+
+  const handlePreview=()=>{
+    sound.init();
+    sound.preview();
+  };
+
+  const currentTheme=SOUND_THEMES[themeId]||SOUND_THEMES.game;
+  const isMuted=themeId==="mute"||vol===0;
+  const icon=isMuted?"🔇":vol<30?"🔈":vol<70?"🔉":"🔊";
+
+  return(
+    <div className="sound-area" ref={panelRef}>
+      <button className="sound-btn" onClick={()=>{sound.init();setOpen(!open);}} title="사운드 설정">
+        {icon}
+      </button>
+
+      {open&&(
+        <div className="sound-panel">
+          <div className="sound-panel-title">🎵 사운드 설정</div>
+
+          {/* Theme Options */}
+          {Object.values(SOUND_THEMES).map(t=>(
+            <div key={t.id}
+              className={`theme-option ${themeId===t.id?"active":""}`}
+              onClick={()=>selectTheme(t.id)}>
+              <div className="t-icon">{t.icon}</div>
+              <div>
+                <div className="t-name">{t.name}</div>
+                <div className="t-desc">{t.desc}</div>
+              </div>
+              {themeId===t.id&&<div style={{marginLeft:"auto",color:"var(--green)",fontSize:16}}>✓</div>}
+            </div>
+          ))}
+
+          {/* Volume Slider */}
+          <div className="vol-section">
+            <div className="vol-label">
+              <span>{icon} 마스터 볼륨</span>
+              <strong>{vol}%</strong>
+            </div>
+            <input type="range" className="vol-slider" min="0" max="100" value={vol}
+              onChange={handleVol} />
+
+            {/* Sound detail indicators */}
+            {themeId!=="mute"&&(
+              <div style={{display:"flex",gap:6,marginTop:10,flexWrap:"wrap"}}>
+                {[
+                  {label:"타이핑",on:currentTheme.typing,color:"var(--blue)"},
+                  {label:"효과음",on:currentTheme.effects,color:"var(--green)"},
+                  {label:"알림음",on:currentTheme.alerts,color:"var(--orange)"},
+                  {label:"콤보",on:currentTheme.combo,color:"var(--gold)"},
+                ].map(s=>(
+                  <div key={s.label} style={{
+                    padding:"3px 8px",borderRadius:6,fontSize:10,fontWeight:600,
+                    background:s.on?s.color+"15":"rgba(255,255,255,0.03)",
+                    color:s.on?s.color:"var(--text-dim)",
+                    border:`1px solid ${s.on?s.color+"30":"rgba(255,255,255,0.05)"}`
+                  }}>{s.on?"✓":"✗"} {s.label}</div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Preview Button */}
+          {themeId!=="mute"&&(
+            <button className="preview-btn" onClick={handlePreview}>
+              🎧 사운드 미리듣기
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ═══════════════════════════════════════
 //  DATA
@@ -394,17 +473,19 @@ function App(){
   const[stats,setStats]=useState({});
   const[name,setName]=useState(()=>localStorage.getItem("typing_name")||"");
   const[best,setBest]=useState(()=>{try{return JSON.parse(localStorage.getItem("typing_best")||"{}");}catch{return{};}});
-  const[soundOn,setSoundOn]=useState(true);
+  const[themeId,setThemeId]=useState(()=>localStorage.getItem("typing_theme")||"game");
+
+  // Apply saved theme on mount
+  useEffect(()=>{soundEngine.setTheme(themeId);},[]);
 
   const saveName=n=>{setName(n);localStorage.setItem("typing_name",n);};
   const saveBest=(mode,score)=>{const k=mode+"_"+diff;const p=best[k]||0;if(score>p){const nx={...best,[k]:score};setBest(nx);localStorage.setItem("typing_best",JSON.stringify(nx));return true;}return false;};
   const startGame=m=>{soundEngine.init();soundEngine.click();setStats({score:0,correct:0,wrong:0,totalChars:0,startTime:Date.now(),lastMode:m});setScreen(m);};
   const endGame=f=>{const nr=saveBest(f.lastMode,f.score);if(nr)soundEngine.newRecord();else soundEngine.gameOver();setStats({...f,newRecord:nr});setScreen("result");};
-  const toggleSound=()=>{soundEngine.init();const on=soundEngine.toggle();setSoundOn(on);if(on)soundEngine.click();};
 
   return(
     <SoundContext.Provider value={soundEngine}>
-      <button className="sound-toggle" onClick={toggleSound}>{soundOn?"🔊":"🔇"}</button>
+      <SoundPanel themeId={themeId} setThemeId={setThemeId} />
       <div>
         {screen==="welcome"&&<WelcomeScreen name={name} onSaveName={saveName} onStart={()=>{soundEngine.init();setScreen("menu");}} />}
         {screen==="menu"&&<MenuScreen onStart={startGame} diff={diff} setDiff={setDiff} name={name} best={best} />}
@@ -421,31 +502,28 @@ function App(){
 //  WELCOME
 // ═══════════════════════════════════════
 function WelcomeScreen({name,onSaveName,onStart}){
-  const[inp,setInp]=useState(name);
-  const[step,setStep]=useState(0);
+  const[inp,setInp]=useState(name);const[step,setStep]=useState(0);
   useEffect(()=>{setTimeout(()=>setStep(1),300);},[]);
   const go=()=>{if(inp.trim())onSaveName(inp.trim());onStart();};
-  return(
-    <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",textAlign:"center",padding:20}}>
-      {step>=1&&(<div className="anim-up">
-        <div style={{width:80,height:80,borderRadius:"50%",margin:"0 auto 16px",background:"linear-gradient(135deg,var(--green),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:40,boxShadow:"0 8px 32px var(--green-glow)"}}>⌨️</div>
-        <h1 style={{fontFamily:"'Black Han Sans',sans-serif",fontSize:"clamp(28px,7vw,44px)",background:"linear-gradient(135deg,var(--green),var(--blue))",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",lineHeight:1.3,marginBottom:8}}>한글 타자 연습</h1>
-        <p style={{color:"var(--text-dim)",fontSize:14,marginBottom:40}}>오성중학교 타자 마스터에 오신 것을 환영합니다!</p>
-        <div style={{maxWidth:320,margin:"0 auto 24px"}}>
-          <label style={{display:"block",fontSize:13,color:"var(--text-dim)",marginBottom:8,textAlign:"left"}}>이름 또는 별명 (선택)</label>
-          <input className="text-input" value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()} placeholder="예: 홍길동" style={{fontSize:18}} autoFocus />
-        </div>
-        <button className="btn btn-primary" onClick={go} style={{fontSize:18,padding:"16px 48px",borderRadius:16}}>🚀 시작하기</button>
-        <div className="card" style={{maxWidth:420,margin:"40px auto 0",textAlign:"left",fontSize:13,color:"var(--text-dim)",lineHeight:2}}>
-          <div style={{fontWeight:700,color:"var(--text)",marginBottom:8,fontSize:14}}>🎮 이용 방법</div>
-          <div><strong style={{color:"var(--green)"}}>단어 연습</strong> — 화면에 나오는 단어를 빠르게 입력</div>
-          <div><strong style={{color:"var(--blue)"}}>문장 연습</strong> — 문장을 보고 정확하게 따라 입력</div>
-          <div><strong style={{color:"var(--red)"}}>낙하 게임</strong> — 떨어지는 단어를 입력해서 없애기!</div>
-          <div style={{marginTop:8}}>🔊 오른쪽 위 버튼으로 소리를 켜고 끌 수 있어요</div>
-        </div>
-      </div>)}
-    </div>
-  );
+  return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",justifyContent:"center",alignItems:"center",textAlign:"center",padding:20}}>
+    {step>=1&&(<div className="anim-up">
+      <div style={{width:80,height:80,borderRadius:"50%",margin:"0 auto 16px",background:"linear-gradient(135deg,var(--green),var(--blue))",display:"flex",alignItems:"center",justifyContent:"center",fontSize:40,boxShadow:"0 8px 32px var(--green-glow)"}}>⌨️</div>
+      <h1 style={{fontFamily:"'Black Han Sans',sans-serif",fontSize:"clamp(28px,7vw,44px)",background:"linear-gradient(135deg,var(--green),var(--blue))",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",lineHeight:1.3,marginBottom:8}}>한글 타자 연습</h1>
+      <p style={{color:"var(--text-dim)",fontSize:14,marginBottom:40}}>오성중학교 타자 마스터에 오신 것을 환영합니다!</p>
+      <div style={{maxWidth:320,margin:"0 auto 24px"}}>
+        <label style={{display:"block",fontSize:13,color:"var(--text-dim)",marginBottom:8,textAlign:"left"}}>이름 또는 별명 (선택)</label>
+        <input className="text-input" value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&go()} placeholder="예: 홍길동" style={{fontSize:18}} autoFocus />
+      </div>
+      <button className="btn btn-primary" onClick={go} style={{fontSize:18,padding:"16px 48px",borderRadius:16}}>🚀 시작하기</button>
+      <div className="card" style={{maxWidth:420,margin:"40px auto 0",textAlign:"left",fontSize:13,color:"var(--text-dim)",lineHeight:2}}>
+        <div style={{fontWeight:700,color:"var(--text)",marginBottom:8,fontSize:14}}>🎮 이용 방법</div>
+        <div><strong style={{color:"var(--green)"}}>단어 연습</strong> — 화면에 나오는 단어를 빠르게 입력</div>
+        <div><strong style={{color:"var(--blue)"}}>문장 연습</strong> — 문장을 보고 정확하게 따라 입력</div>
+        <div><strong style={{color:"var(--red)"}}>낙하 게임</strong> — 떨어지는 단어를 입력해서 없애기!</div>
+        <div style={{marginTop:8}}>🔊 오른쪽 위 버튼으로 사운드를 설정할 수 있어요</div>
+      </div>
+    </div>)}
+  </div>);
 }
 
 // ═══════════════════════════════════════
@@ -458,59 +536,56 @@ function MenuScreen({onStart,diff,setDiff,name,best}){
     {id:"sentence",icon:"📝",title:"문장 연습",desc:"문장을 정확하게 따라 치기",color:"var(--blue)",bg:"var(--blue-glow)"},
     {id:"falling",icon:"🎮",title:"낙하 게임",desc:"떨어지는 단어를 잡아라!",color:"var(--red)",bg:"var(--red-glow)"},
   ];
-  return(
-    <div style={{paddingTop:20}}>
-      <div style={{textAlign:"center",marginBottom:32}} className="anim-up">
-        <div style={{fontSize:13,color:"var(--text-dim)",marginBottom:4}}>{name?`${name}님, 환영합니다! 👋`:"환영합니다! 👋"}</div>
-        <h1 style={{fontFamily:"'Black Han Sans',sans-serif",fontSize:"clamp(24px,6vw,36px)",color:"var(--text)",margin:"4px 0 0"}}>모드를 선택하세요</h1>
-      </div>
-      <div style={{display:"flex",justifyContent:"center",gap:8,marginBottom:20}}>
-        {Object.entries(WORDS).map(([k,v])=>{
-          const c=k==='easy'?'var(--green)':k==='medium'?'var(--blue)':'var(--red)';
-          return <button key={k} onClick={()=>{sound.click();setDiff(k);}} style={{padding:"8px 20px",borderRadius:20,
-            background:diff===k?c+"15":"rgba(255,255,255,0.03)",border:`1.5px solid ${diff===k?c:'var(--border)'}`,
-            color:diff===k?c:"var(--text-dim)",cursor:"pointer",fontFamily:"'Noto Sans KR'",fontWeight:600,fontSize:14,transition:"all .2s"
-          }}>{v.emoji} {v.label}</button>;
-        })}
-      </div>
-      <div style={{textAlign:"center",marginBottom:24}}>
-        <div style={{display:"inline-flex",alignItems:"center",gap:10,padding:"8px 20px",borderRadius:20,background:"rgba(255,255,255,0.03)",border:"1px solid var(--border)"}}>
-          <span style={{fontSize:12,color:"var(--text-dim)"}}>🎮 낙하 속도</span>
-          <div style={{display:"flex",gap:3}}>
-            {[1,2,3].map(i=>{const lvl=diff==='easy'?1:diff==='medium'?2:3;
-              return <div key={i} style={{width:20,height:8,borderRadius:4,transition:"all .3s",
-                background:i<=lvl?(diff==='easy'?'var(--green)':diff==='medium'?'var(--blue)':'var(--red)'):"rgba(255,255,255,0.08)"}} />;
-            })}
-          </div>
-          <span style={{fontSize:13,fontWeight:700,color:diff==='easy'?'var(--green)':diff==='medium'?'var(--blue)':'var(--red)'}}>{WORDS[diff].falling.label}</span>
+  return(<div style={{paddingTop:20}}>
+    <div style={{textAlign:"center",marginBottom:32}} className="anim-up">
+      <div style={{fontSize:13,color:"var(--text-dim)",marginBottom:4}}>{name?`${name}님, 환영합니다! 👋`:"환영합니다! 👋"}</div>
+      <h1 style={{fontFamily:"'Black Han Sans',sans-serif",fontSize:"clamp(24px,6vw,36px)",color:"var(--text)",margin:"4px 0 0"}}>모드를 선택하세요</h1>
+    </div>
+    <div style={{display:"flex",justifyContent:"center",gap:8,marginBottom:20}}>
+      {Object.entries(WORDS).map(([k,v])=>{const c=k==='easy'?'var(--green)':k==='medium'?'var(--blue)':'var(--red)';
+        return <button key={k} onClick={()=>{sound.click();setDiff(k);}} style={{padding:"8px 20px",borderRadius:20,
+          background:diff===k?c+"15":"rgba(255,255,255,0.03)",border:`1.5px solid ${diff===k?c:'var(--border)'}`,
+          color:diff===k?c:"var(--text-dim)",cursor:"pointer",fontFamily:"'Noto Sans KR'",fontWeight:600,fontSize:14,transition:"all .2s"
+        }}>{v.emoji} {v.label}</button>;
+      })}
+    </div>
+    <div style={{textAlign:"center",marginBottom:24}}>
+      <div style={{display:"inline-flex",alignItems:"center",gap:10,padding:"8px 20px",borderRadius:20,background:"rgba(255,255,255,0.03)",border:"1px solid var(--border)"}}>
+        <span style={{fontSize:12,color:"var(--text-dim)"}}>🎮 낙하 속도</span>
+        <div style={{display:"flex",gap:3}}>
+          {[1,2,3].map(i=>{const lvl=diff==='easy'?1:diff==='medium'?2:3;
+            return <div key={i} style={{width:20,height:8,borderRadius:4,transition:"all .3s",
+              background:i<=lvl?(diff==='easy'?'var(--green)':diff==='medium'?'var(--blue)':'var(--red)'):"rgba(255,255,255,0.08)"}}/>;
+          })}
         </div>
-      </div>
-      <div style={{display:"flex",flexDirection:"column",gap:12}}>
-        {modes.map((m,i)=>{const b=best[m.id+"_"+diff];
-          return <button key={m.id} onClick={()=>onStart(m.id)} className="anim-up"
-            style={{display:"flex",alignItems:"center",gap:16,padding:20,borderRadius:16,background:"var(--bg-card)",border:"1px solid var(--border)",cursor:"pointer",textAlign:"left",width:"100%",transition:"all .25s",animationDelay:`${i*.08}s`,overflow:"hidden"}}
-            onMouseOver={e=>{e.currentTarget.style.borderColor=m.color;e.currentTarget.style.transform="translateY(-2px)";}}
-            onMouseOut={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.transform="translateY(0)";}}
-            onTouchStart={e=>e.currentTarget.style.borderColor=m.color}
-            onTouchEnd={e=>setTimeout(()=>{if(e.currentTarget)e.currentTarget.style.borderColor="var(--border)";},200)}>
-            <div style={{fontSize:32,width:56,height:56,borderRadius:14,background:m.bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{m.icon}</div>
-            <div style={{flex:1,minWidth:0}}>
-              <div style={{fontSize:18,fontWeight:700,color:"var(--text)"}}>{m.title}</div>
-              <div style={{fontSize:13,color:"var(--text-dim)",marginTop:2}}>{m.desc}</div>
-              {b>0&&<div style={{fontSize:11,color:"var(--gold)",marginTop:4}}>🏆 최고: {b.toLocaleString()}점</div>}
-            </div>
-            <div style={{color:m.color,fontSize:22,fontWeight:300,flexShrink:0}}>›</div>
-          </button>;
-        })}
-      </div>
-      <div className="card" style={{marginTop:28,fontSize:13,color:"var(--text-dim)",lineHeight:1.9}}>
-        💡 <strong style={{color:"var(--blue)"}}>타자 꿀팁</strong><br/>
-        • 키보드의 ㅋ, ㅎ에 검지 손가락을 올려놓으세요 (홈 포지션)<br/>
-        • 처음엔 <strong>정확하게</strong>, 익숙해지면 <strong>빠르게</strong>!<br/>
-        • 하루 10분이면 한 달 뒤 달라진 실력을 느낄 수 있어요
+        <span style={{fontSize:13,fontWeight:700,color:diff==='easy'?'var(--green)':diff==='medium'?'var(--blue)':'var(--red)'}}>{WORDS[diff].falling.label}</span>
       </div>
     </div>
-  );
+    <div style={{display:"flex",flexDirection:"column",gap:12}}>
+      {modes.map((m,i)=>{const b=best[m.id+"_"+diff];
+        return <button key={m.id} onClick={()=>onStart(m.id)} className="anim-up"
+          style={{display:"flex",alignItems:"center",gap:16,padding:20,borderRadius:16,background:"var(--bg-card)",border:"1px solid var(--border)",cursor:"pointer",textAlign:"left",width:"100%",transition:"all .25s",animationDelay:`${i*.08}s`,overflow:"hidden"}}
+          onMouseOver={e=>{e.currentTarget.style.borderColor=m.color;e.currentTarget.style.transform="translateY(-2px)";}}
+          onMouseOut={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.transform="translateY(0)";}}
+          onTouchStart={e=>e.currentTarget.style.borderColor=m.color}
+          onTouchEnd={e=>setTimeout(()=>{if(e.currentTarget)e.currentTarget.style.borderColor="var(--border)";},200)}>
+          <div style={{fontSize:32,width:56,height:56,borderRadius:14,background:m.bg,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{m.icon}</div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:18,fontWeight:700,color:"var(--text)"}}>{m.title}</div>
+            <div style={{fontSize:13,color:"var(--text-dim)",marginTop:2}}>{m.desc}</div>
+            {b>0&&<div style={{fontSize:11,color:"var(--gold)",marginTop:4}}>🏆 최고: {b.toLocaleString()}점</div>}
+          </div>
+          <div style={{color:m.color,fontSize:22,fontWeight:300,flexShrink:0}}>›</div>
+        </button>;
+      })}
+    </div>
+    <div className="card" style={{marginTop:28,fontSize:13,color:"var(--text-dim)",lineHeight:1.9}}>
+      💡 <strong style={{color:"var(--blue)"}}>타자 꿀팁</strong><br/>
+      • 키보드의 ㅋ, ㅎ에 검지 손가락을 올려놓으세요 (홈 포지션)<br/>
+      • 처음엔 <strong>정확하게</strong>, 익숙해지면 <strong>빠르게</strong>!<br/>
+      • 하루 10분이면 한 달 뒤 달라진 실력을 느낄 수 있어요
+    </div>
+  </div>);
 }
 
 // ═══════════════════════════════════════
@@ -536,21 +611,15 @@ function WordMode({diff,onEnd,stats,setStats}){
   const[words]=useState(()=>{const s=[];while(s.length<total)s.push(...shuffle(pool));return s.slice(0,total);});
   const[idx,setIdx]=useState(0);const[input,setInput]=useState("");const[timeLeft,setTimeLeft]=useState(60);
   const[results,setResults]=useState([]);const[msg,setMsg]=useState("");const inputRef=useRef(null);
-
   useEffect(()=>{inputRef.current?.focus();},[]);
   useEffect(()=>{if(timeLeft<=0){finish();return;}if(timeLeft<=3)sound.countdown(timeLeft);const t=setTimeout(()=>setTimeLeft(p=>p-1),1000);return()=>clearTimeout(t);},[timeLeft]);
-
   const finish=()=>onEnd({...stats,elapsed:(Date.now()-stats.startTime)/60000,lastMode:"word"});
-  const submit=()=>{
-    const v=input.trim();if(!v)return;const ok=v===words[idx];const ch=getKS(v);
+  const submit=()=>{const v=input.trim();if(!v)return;const ok=v===words[idx];const ch=getKS(v);
     if(ok){sound.correct();setMsg(pick(ENCOURAGE.great));}else{sound.wrong();setMsg(pick(ENCOURAGE.miss));}
-    setResults(p=>[...p,ok]);
-    setStats(p=>({...p,totalChars:p.totalChars+(ok?ch:0),correct:p.correct+(ok?1:0),wrong:p.wrong+(ok?0:1),score:p.score+(ok?ch*10:0)}));
-    setInput("");if(idx+1>=total)finish();else setIdx(p=>p+1);
-  };
+    setResults(p=>[...p,ok]);setStats(p=>({...p,totalChars:p.totalChars+(ok?ch:0),correct:p.correct+(ok?1:0),wrong:p.wrong+(ok?0:1),score:p.score+(ok?ch*10:0)}));
+    setInput("");if(idx+1>=total)finish();else setIdx(p=>p+1);};
   const el=(Date.now()-stats.startTime)/60000;const cpm=Math.round(stats.totalChars/Math.max(el,.01));
   const acc=(stats.correct+stats.wrong)>0?Math.round(stats.correct/(stats.correct+stats.wrong)*100):100;
-
   return(<div style={{paddingTop:12}}>
     <GameHeader title="단어 연습" icon="✏️" color="var(--green)" onBack={finish} />
     <div className="stat-row">
@@ -583,10 +652,8 @@ function SentenceMode({onEnd,stats,setStats}){
   const sound=useContext(SoundContext);
   const[sentences]=useState(()=>shuffle(SENTENCES).slice(0,10));
   const[idx,setIdx]=useState(0);const[input,setInput]=useState("");const[timeLeft,setTimeLeft]=useState(120);const inputRef=useRef(null);
-
   useEffect(()=>{inputRef.current?.focus();},[]);
   useEffect(()=>{if(timeLeft<=0){finish();return;}if(timeLeft<=3)sound.countdown(timeLeft);const t=setTimeout(()=>setTimeLeft(p=>p-1),1000);return()=>clearTimeout(t);},[timeLeft]);
-
   const finish=()=>onEnd({...stats,elapsed:(Date.now()-stats.startTime)/60000,lastMode:"sentence"});
   const target=sentences[idx]||"";
   const onChange=e=>{const v=e.target.value;sound.type();setInput(v);
@@ -594,7 +661,6 @@ function SentenceMode({onEnd,stats,setStats}){
       if(idx+1>=sentences.length)finish();else setIdx(p=>p+1);}};
   const el=(Date.now()-stats.startTime)/60000;const cpm=Math.round(stats.totalChars/Math.max(el,.01));
   const chars=[...target],ic=[...input];
-
   return(<div style={{paddingTop:12}}>
     <GameHeader title="문장 연습" icon="📝" color="var(--blue)" onBack={finish} />
     <div className="stat-row">
@@ -628,13 +694,11 @@ function FallingMode({diff,onEnd,stats,setStats}){
   const inputRef=useRef(null);const animRef=useRef(null);const lastSpawn=useRef(0);const wordId=useRef(0);
   const livesRef=useRef(5);const timeRef=useRef(90);const startRef=useRef(Date.now());
   const poolRef=useRef(shuffle(WORDS[diff].words));const poolIdx=useRef(0);
-
   const nextWord=()=>{if(poolIdx.current>=poolRef.current.length){poolRef.current=shuffle(WORDS[diff].words);poolIdx.current=0;}return poolRef.current[poolIdx.current++];};
   const getSpeed=useCallback(()=>{const sec=(Date.now()-startRef.current)/1000;return Math.min(cfg.baseSpeed+sec*cfg.accel,cfg.maxSpeed);},[cfg]);
   const getSpawnMs=useCallback(()=>{const sec=(Date.now()-startRef.current)/1000;return Math.max(cfg.spawnMs-sec*10,700);},[cfg]);
   const spawn=useCallback(()=>{const spd=getSpeed();const v=(Math.random()-.3)*cfg.speedVar;
     setWords(p=>[...p,{id:wordId.current++,word:nextWord(),x:8+Math.random()*78,y:-8,speed:spd+v}]);},[getSpeed,cfg]);
-
   useEffect(()=>{inputRef.current?.focus();startRef.current=Date.now();spawn();spawn();
     let lt=performance.now();
     const loop=t=>{const dt=t-lt;lt=t;
@@ -643,19 +707,16 @@ function FallingMode({diff,onEnd,stats,setStats}){
         for(const w of prev){const ny=w.y+w.speed*dt*.065;if(ny>108)missed++;else alive.push({...w,y:ny});}
         if(missed>0){livesRef.current=Math.max(0,livesRef.current-missed);setLives(livesRef.current);setCombo(0);setFlash("miss");sound.miss();setTimeout(()=>setFlash(""),300);}
         return alive;});
-      if(livesRef.current>0&&timeRef.current>0)animRef.current=requestAnimationFrame(loop);
-    };animRef.current=requestAnimationFrame(loop);
+      if(livesRef.current>0&&timeRef.current>0)animRef.current=requestAnimationFrame(loop);};
+    animRef.current=requestAnimationFrame(loop);
     return()=>{if(animRef.current)cancelAnimationFrame(animRef.current);};},[]);
-
   useEffect(()=>{const iv=setInterval(()=>{const sec=(Date.now()-startRef.current)/1000;const nl=Math.min(Math.floor(sec/15)+1,6);
     setSpeedLv(prev=>{if(nl>prev&&nl>1){sound.levelUp();setSpeedNotice(`⚡ 속도 ${nl}단계!`);setTimeout(()=>setSpeedNotice(""),2000);}return nl;});},1000);
     return()=>clearInterval(iv);},[]);
-
   useEffect(()=>{if(lives<=0||timeLeft<=0){if(animRef.current)cancelAnimationFrame(animRef.current);
     onEnd({...stats,elapsed:(Date.now()-stats.startTime)/60000,lastMode:"falling",maxCombo});return;}
     if(timeLeft<=3)sound.countdown(timeLeft);
     const t=setTimeout(()=>{setTimeLeft(p=>{timeRef.current=p-1;return p-1;});},1000);return()=>clearTimeout(t);},[timeLeft,lives]);
-
   const submit=()=>{const v=input.trim();if(!v)return;const mi=words.findIndex(w=>w.word===v);
     if(mi!==-1){const m=words[mi];const ch=getKS(v);const nc=combo+1;const bonus=Math.floor(nc/5)*50;const pts=ch*10+bonus;
       sound.combo(nc);setEffects(p=>[...p,{id:Date.now()+Math.random(),x:m.x,y:m.y,text:`+${pts}`}]);
@@ -663,10 +724,8 @@ function FallingMode({diff,onEnd,stats,setStats}){
       setCombo(nc);setMaxCombo(p=>Math.max(p,nc));setStats(p=>({...p,totalChars:p.totalChars+ch,correct:p.correct+1,score:p.score+pts}));setFlash("hit");
     }else{sound.wrong();setCombo(0);setStats(p=>({...p,wrong:p.wrong+1}));setFlash("miss");}
     setTimeout(()=>setFlash(""),250);setInput("");};
-
   const el=(Date.now()-stats.startTime)/60000;const cpm=Math.round(stats.totalChars/Math.max(el,.01));
   const speedPct=Math.round(((getSpeed()-cfg.baseSpeed)/(cfg.maxSpeed-cfg.baseSpeed))*100);
-
   return(<div style={{paddingTop:12}}>
     <GameHeader title={`낙하 게임 (${WORDS[diff].falling.label})`} icon="🎮" color="var(--red)" onBack={()=>{
       if(animRef.current)cancelAnimationFrame(animRef.current);onEnd({...stats,elapsed:el,lastMode:"falling",maxCombo});}} />
@@ -684,7 +743,7 @@ function FallingMode({diff,onEnd,stats,setStats}){
         <span style={{fontSize:11,color:"var(--text-dim)"}}>속도 Lv.{speedLv}</span>
         <div style={{width:60,height:6,borderRadius:3,background:"rgba(255,255,255,0.06)",overflow:"hidden"}}>
           <div style={{height:"100%",borderRadius:3,transition:"width .5s,background .5s",width:`${Math.max(10,speedPct)}%`,
-            background:speedPct<40?"var(--green)":speedPct<70?"var(--orange)":"var(--red)"}} />
+            background:speedPct<40?"var(--green)":speedPct<70?"var(--orange)":"var(--red)"}}/>
         </div>
       </div>
     </div>
@@ -731,7 +790,6 @@ function ResultScreen({stats,name,onBack,onRetry}){
     {icon:"🏆",label:"총 점수",value:stats.score.toLocaleString()},{icon:"✅",label:"성공",value:stats.correct},
     {icon:"❌",label:"실패",value:stats.wrong},{icon:"⏱️",label:"소요 시간",value:`${Math.round(el*60)}초`}];
   if(stats.maxCombo)items.push({icon:"🔥",label:"최대 콤보",value:`${stats.maxCombo}x`});
-
   return(<div style={{paddingTop:30,textAlign:"center"}}>
     {stats.newRecord&&<div className="anim-pop" style={{display:"inline-block",padding:"6px 20px",borderRadius:20,background:"var(--gold-glow)",border:"1px solid var(--gold)",color:"var(--gold)",fontSize:14,fontWeight:700,marginBottom:16,animation:"glow 1.5s ease infinite"}}>🎉 새 기록 달성!</div>}
     <div className="anim-pop" style={{marginBottom:24}}>
